@@ -2,6 +2,7 @@
 
 const config = require('./config');
 const { initDatabase, closeDatabase } = require('./db/database');
+const pdfService = require('./services/pdfService');
 const app = require('./app');
 
 initDatabase();
@@ -9,6 +10,10 @@ initDatabase();
 const server = app.listen(config.port, () => {
   console.log(`Credet backend listening on http://localhost:${config.port}`);
   console.log(`Database: ${config.databasePath}`);
+
+  pdfService.warmUpPdfEngine().catch((error) => {
+    console.error(`[pdf] Warm-up failed: ${error.message}`);
+  });
 });
 
 server.on('error', (error) => {
@@ -35,9 +40,18 @@ function shutdown(signal) {
 
   forceExit.unref();
 
-  server.close((error) => {
-    clearTimeout(forceExit);
-    closeDatabase();
+  server.close(async (error) => {
+    try {
+      try {
+        await pdfService.closePdfEngine();
+      } catch (closeError) {
+        console.error(`[shutdown] PDF engine: ${closeError.message}`);
+      }
+
+      closeDatabase();
+    } finally {
+      clearTimeout(forceExit);
+    }
 
     if (error) {
       console.error(`[shutdown] ${error.message}`);

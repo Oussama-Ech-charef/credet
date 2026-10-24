@@ -9,6 +9,9 @@ const Database = require('better-sqlite3');
 
 const { initDatabase, getDb, closeDatabase } = require('../src/db/database');
 const { roundMoney } = require('../src/utils/money');
+const pdfService = require('../src/services/pdfService');
+const reportService = require('../src/services/reportService');
+const templateService = require('../src/services/templateService');
 
 const backendRoot = path.resolve(__dirname, '..');
 const temporaryDirectory = fs.mkdtempSync(path.join(os.tmpdir(), 'credet-verify-'));
@@ -73,6 +76,75 @@ function sumMoney(values) {
   return cents / 100;
 }
 
+const ARABIC_TEXT_PATTERN = /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/;
+
+async function inspectPdf(buffer, pagesToRead = 1) {
+  const pdfjs = await import('pdfjs-dist/legacy/build/pdf.mjs');
+  const document = await pdfjs.getDocument({
+    data: new Uint8Array(buffer),
+    isEvalSupported: false,
+    useSystemFonts: true,
+    verbosity: 0,
+  }).promise;
+
+  try {
+    const pageCount = document.numPages;
+    const firstPage = await document.getPage(1);
+    const viewport = firstPage.getViewport({ scale: 1 });
+    const texts = [];
+
+    for (let pageNumber = 1; pageNumber <= Math.min(pageCount, pagesToRead); pageNumber += 1) {
+      const page = await document.getPage(pageNumber);
+      const textContent = await page.getTextContent();
+      texts.push(textContent.items.map((item) => item.str).join(''));
+    }
+
+    return {
+      pageCount,
+      width: viewport.width,
+      height: viewport.height,
+      texts,
+    };
+  } finally {
+    await document.destroy();
+  }
+}
+
+function assertPdfResponse(response, dispositionPattern) {
+  assert.equal(response.status, 200);
+  assert.ok(Buffer.isBuffer(response.data));
+  assert.equal(response.headers.get('content-type'), 'application/pdf');
+  assert.match(
+    response.headers.get('content-disposition') || '',
+    dispositionPattern,
+  );
+  assert.equal(
+    Number(response.headers.get('content-length')),
+    response.data.length,
+  );
+  assert.equal(response.headers.get('cache-control'), 'no-store');
+  assert.equal(response.headers.get('x-content-type-options'), 'nosniff');
+  assert.match(
+    response.headers.get('access-control-expose-headers') || '',
+    /Content-Disposition/i,
+  );
+  assert.equal(response.data.subarray(0, 5).toString('ascii'), '%PDF-');
+  assert.match(response.data.toString('latin1').trimEnd(), /%%EOF$/);
+  assert.ok(response.data.length > 10_000);
+  assert.match(response.data.toString('latin1'), /Cairo/);
+}
+
+function assertA4Pdf(inspection) {
+  assert.ok(
+    Math.abs(inspection.width - 595.28) < 2,
+    `unexpected PDF width: ${inspection.width}`,
+  );
+  assert.ok(
+    Math.abs(inspection.height - 841.89) < 2,
+    `unexpected PDF height: ${inspection.height}`,
+  );
+}
+
 async function startServer() {
   initDatabase(databasePath);
 
@@ -102,6 +174,12 @@ async function stopServer() {
 async function cleanup() {
   try {
     await stopServer();
+  } catch (error) {
+    console.error(`[cleanup] ${error.message}`);
+  }
+
+  try {
+    await pdfService.closePdfEngine();
   } catch (error) {
     console.error(`[cleanup] ${error.message}`);
   }
@@ -228,6 +306,10 @@ async function main() {
     });
     assert.equal(response.status, 200);
     assert.equal(response.headers.get('access-control-allow-origin'), '*');
+    assert.match(
+      response.headers.get('access-control-expose-headers') || '',
+      /Content-Disposition/i,
+    );
 
     const preflight = await fetch(`${baseUrl}/api/clients`, {
       method: 'OPTIONS',
@@ -1059,6 +1141,270 @@ async function main() {
     assert.ok(exportedPayment);
     assert.equal(exportedPayment.amount, 40);
     assert.equal(exportedPayment.description, 'Stats payment');
+  });
+
+  await check('PDF statement is valid A4 Arabic with download headers and warm rendering under 1.5s', async () => {
+    await pdfService.warmUpPdfEngine();
+
+    const statementUrl = `/api/reports/client/${clients.mohamed.id}/pdf`;
+    const expectedDisposition = new RegExp(
+      `^inline; filename="credet-client-${clients.mohamed.id}\\.pdf"$`,
+    );
+    const startedAt = Date.now();
+    const response = await request('GET', statementUrl);
+    const elapsed = Date.now() - startedAt;
+
+    assertPdfResponse(response, expectedDisposition);
+    assert.ok(elapsed < 1500, `warm statement PDF took ${elapsed} ms`);
+
+    const inspection = await inspectPdf(response.data);
+    assert.equal(inspection.pageCount, 1);
+    assertA4Pdf(inspection);
+    assert.match(inspection.texts[0], ARABIC_TEXT_PATTERN);
+    assert.match(inspection.texts[0], /\d/);
+
+    const secondStartedAt = Date.now();
+    const secondResponse = await request('GET', statementUrl);
+    const secondElapsed = Date.now() - secondStartedAt;
+
+    assertPdfResponse(secondResponse, expectedDisposition);
+    assert.ok(
+      secondElapsed < 1500,
+      `second warm statement PDF took ${secondElapsed} ms`,
+    );
+  });
+
+  await check('PDF statement applies date filters and rejects invalid requests', async () => {
+    const expectedDisposition = new RegExp(
+      `^inline; filename="credet-client-${clients.mohamed.id}\\.pdf"$`,
+    );
+    const filtered = await request(
+      'GET',
+      `/api/reports/client/${clients.mohamed.id}/pdf?from=2026-01-01&to=2026-12-31`,
+    );
+
+    assertPdfResponse(filtered, expectedDisposition);
+    const inspection = await inspectPdf(filtered.data);
+    assert.equal(inspection.pageCount, 1);
+    assert.match(inspection.texts[0], ARABIC_TEXT_PATTERN);
+
+    let response = await request(
+      'GET',
+      `/api/reports/client/${clients.mohamed.id}/pdf?from=2026-12-31&to=2026-01-01`,
+    );
+    assert.equal(response.status, 400);
+    assert.equal(response.data.error, 'from must be before or equal to to');
+
+    response = await request(
+      'GET',
+      `/api/reports/client/${clients.mohamed.id}/pdf?from=2026-13-01`,
+    );
+    assert.equal(response.status, 400);
+
+    response = await request('GET', '/api/reports/client/not-a-number/pdf');
+    assert.equal(response.status, 400);
+
+    response = await request('GET', '/api/reports/client/999999/pdf');
+    assert.equal(response.status, 404);
+    assert.equal(response.data.error, 'Client not found');
+  });
+
+  await check('general report PDF renders all clients and the debt-only filter', async () => {
+    let response = await request('GET', '/api/reports/general/pdf');
+    assertPdfResponse(
+      response,
+      /^inline; filename="credet-general-report-\d{8}\.pdf"$/,
+    );
+
+    let inspection = await inspectPdf(response.data);
+    assert.equal(inspection.pageCount, 1);
+    assertA4Pdf(inspection);
+    assert.match(inspection.texts[0], ARABIC_TEXT_PATTERN);
+    assert.match(inspection.texts[0], /Bob\s*Advance/);
+
+    response = await request('GET', '/api/reports/general/pdf?filter=debt_only');
+    assertPdfResponse(
+      response,
+      /^inline; filename="credet-general-report-\d{8}\.pdf"$/,
+    );
+
+    inspection = await inspectPdf(response.data);
+    assert.equal(inspection.pageCount, 1);
+    assert.match(inspection.texts[0], ARABIC_TEXT_PATTERN);
+    assert.doesNotMatch(inspection.texts[0], /Bob\s*Advance/);
+
+    response = await request('GET', '/api/reports/general/pdf?filter=invalid');
+    assert.equal(response.status, 400);
+    assert.equal(response.data.error, 'filter must be all or debt_only');
+  });
+
+  await check('receipt PDF renders one transaction with A4 Arabic output', async () => {
+    const entryId = entries.stats.payment.id;
+    const response = await request(
+      'GET',
+      `/api/reports/entry/${entryId}/receipt/pdf`,
+    );
+
+    assertPdfResponse(
+      response,
+      new RegExp(`^inline; filename="credet-receipt-${entryId}\\.pdf"$`),
+    );
+
+    const inspection = await inspectPdf(response.data);
+    assert.equal(inspection.pageCount, 1);
+    assertA4Pdf(inspection);
+    assert.match(inspection.texts[0], ARABIC_TEXT_PATTERN);
+
+    const missing = await request('GET', '/api/reports/entry/999999/receipt/pdf');
+    assert.equal(missing.status, 404);
+    assert.equal(missing.data.error, 'Entry not found');
+  });
+
+  await check('empty client statement renders the empty state without failing', async () => {
+    const emptyClient = await request('POST', '/api/clients', {
+      name: 'PDF Empty Ledger',
+    });
+    assert.equal(emptyClient.status, 201);
+
+    const response = await request(
+      'GET',
+      `/api/reports/client/${emptyClient.data.id}/pdf`,
+    );
+
+    assertPdfResponse(
+      response,
+      new RegExp(`^inline; filename="credet-client-${emptyClient.data.id}\\.pdf"$`),
+    );
+
+    const inspection = await inspectPdf(response.data);
+    assert.equal(inspection.pageCount, 1);
+    assert.match(inspection.texts[0], ARABIC_TEXT_PATTERN);
+  });
+
+  await check('PDF templates escape untrusted client and entry text', async () => {
+    const xssClient = await request('POST', '/api/clients', {
+      name: '<script>alert(1)</script>',
+      phone: '"><img src=x onerror=alert(1)>',
+      address: 'Line 1\nLine 2',
+      notes: '<b>note</b>',
+    });
+    assert.equal(xssClient.status, 201);
+
+    const xssEntry = await request(
+      'POST',
+      `/api/clients/${xssClient.data.id}/entries`,
+      {
+        operation_type: 'DEBT',
+        amount: 10,
+        description: '<script>alert("xss")</script>',
+        operation_date: '2026-01-01',
+        note: '<img src=x>',
+      },
+    );
+    assert.equal(xssEntry.status, 201);
+
+    const data = reportService.getClientStatement(xssClient.data.id);
+    const html = templateService.renderClientStatement(data);
+
+    assert.match(html, /&lt;script&gt;alert\(1\)&lt;\/script&gt;/);
+    assert.match(html, /&lt;script&gt;alert\(&quot;xss&quot;\)&lt;\/script&gt;/);
+    assert.doesNotMatch(html, /<script>alert/);
+    assert.doesNotMatch(html, /<img src=x/);
+    assert.match(html, /Content-Security-Policy/);
+    assert.match(html, /script-src 'none'/);
+    assert.match(html, /data:font\/ttf;base64,/);
+    assert.doesNotMatch(html, /https?:\/\//);
+
+    const response = await request(
+      'GET',
+      `/api/reports/client/${xssClient.data.id}/pdf`,
+    );
+    assertPdfResponse(
+      response,
+      new RegExp(`^inline; filename="credet-client-${xssClient.data.id}\\.pdf"$`),
+    );
+
+    const inspection = await inspectPdf(response.data);
+    assert.equal(inspection.pageCount, 1);
+    assert.match(inspection.texts[0], ARABIC_TEXT_PATTERN);
+  });
+
+  await check('multi-page statement PDF paginates A4 content cleanly', async () => {
+    const multiClient = await request('POST', '/api/clients', {
+      name: 'PDF Multi Page',
+      phone: '0600000088',
+      address: 'Test address',
+    });
+    assert.equal(multiClient.status, 201);
+
+    const insertEntry = db.prepare(`
+      INSERT INTO credit_entries (
+        client_id, operation_type, amount, description, operation_date
+      ) VALUES (?, ?, ?, ?, ?)
+    `);
+    const insertEntries = db.transaction(() => {
+      for (let index = 1; index <= 80; index += 1) {
+        const day = String(((index - 1) % 28) + 1).padStart(2, '0');
+        const month = String(Math.floor((index - 1) / 28) + 1).padStart(2, '0');
+        const isPayment = index % 4 === 0;
+
+        insertEntry.run(
+          multiClient.data.id,
+          isPayment ? 'PAYMENT' : 'DEBT',
+          isPayment ? 50 : 100 + index,
+          isPayment
+            ? `دفعة جزئية رقم ${index}`
+            : `سلعة تجريبية رقم ${index} — وصف أطول قليلاً لاختبار التفاف النص`,
+          `2026-${month}-${day}`,
+        );
+      }
+    });
+    insertEntries();
+
+    const response = await request(
+      'GET',
+      `/api/reports/client/${multiClient.data.id}/pdf`,
+    );
+    assertPdfResponse(
+      response,
+      new RegExp(`^inline; filename="credet-client-${multiClient.data.id}\\.pdf"$`),
+    );
+
+    const inspection = await inspectPdf(response.data, 2);
+    assert.ok(
+      inspection.pageCount >= 2,
+      `expected multiple pages, got ${inspection.pageCount}`,
+    );
+    assert.equal(inspection.texts.length, 2);
+    assertA4Pdf(inspection);
+    assert.match(inspection.texts[0], ARABIC_TEXT_PATTERN);
+    assert.match(inspection.texts[1], ARABIC_TEXT_PATTERN);
+  });
+
+  await check('multi-page general report keeps table content flowing across A4 pages', async () => {
+    const insertClient = db.prepare('INSERT INTO clients (name) VALUES (?)');
+    const insertClients = db.transaction(() => {
+      for (let index = 1; index <= 35; index += 1) {
+        insertClient.run(`PDF Bulk Client ${String(index).padStart(2, '0')}`);
+      }
+    });
+    insertClients();
+
+    const response = await request('GET', '/api/reports/general/pdf');
+    assertPdfResponse(
+      response,
+      /^inline; filename="credet-general-report-\d{8}\.pdf"$/,
+    );
+
+    const inspection = await inspectPdf(response.data, 2);
+    assert.ok(
+      inspection.pageCount >= 2,
+      `expected multiple report pages, got ${inspection.pageCount}`,
+    );
+    assert.equal(inspection.texts.length, 2);
+    assertA4Pdf(inspection);
+    assert.match(inspection.texts[0], ARABIC_TEXT_PATTERN);
+    assert.match(inspection.texts[1], ARABIC_TEXT_PATTERN);
   });
 
   await check('seed script populates empty data, is safe to rerun, and preserves decimals', () => {

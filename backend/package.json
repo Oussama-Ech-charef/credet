@@ -2,7 +2,7 @@
   "name": "credet-backend",
   "version": "1.0.0",
   "private": true,
-  "description": "Credet API and embedded SQLite persistence layer",
+  "description": "Credet API, embedded SQLite persistence, and Arabic RTL PDF reports",
   "main": "src/server.js",
   "type": "commonjs",
   "engines": {
@@ -27,6 +27,10 @@
     "better-sqlite3": "^13.0.3",
     "cors": "^2.8.6",
     "dotenv": "^18.0.9",
-    "express": "^5.3.0"
+    "express": "^5.3.0",
+    "puppeteer": "^25.16.0"
+  },
+  "devDependencies": {
+    "pdfjs-dist": "^5.4.296"
   }
 }

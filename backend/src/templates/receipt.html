@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; font-src data:; img-src data:; script-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta name="author" content="Credet">
+  <title>{{DOCUMENT_TITLE}}</title>
+  <style>
+    {{FONT_CSS}}
+    {{BASE_CSS}}
+
+    .receipt-wrap {
+      max-width: 158mm;
+      margin: 7mm auto 0;
+    }
+
+    .receipt-card {
+      position: relative;
+      overflow: hidden;
+      padding: 8mm;
+      border: 0.4mm solid #cbd5e1;
+      border-radius: 4mm;
+      background: #ffffff;
+      box-shadow: 0 2mm 6mm rgba(15, 23, 42, 0.08);
+    }
+
+    .receipt-card::before {
+      content: '';
+      position: absolute;
+      inset-inline: 0;
+      top: 0;
+      height: 1.4mm;
+      background: linear-gradient(90deg, #4f46e5 0%, #0ea5e9 55%, #10b981 100%);
+    }
+
+    .receipt-title-row {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 6mm;
+      padding-bottom: 5mm;
+      border-bottom: 0.35mm dashed #cbd5e1;
+    }
+
+    .receipt-title {
+      margin: 0;
+      font-size: 20pt;
+      font-weight: 700;
+      line-height: 1.25;
+    }
+
+    .receipt-subtitle {
+      margin-top: 1mm;
+      color: var(--muted);
+      font-size: 8.5pt;
+    }
+
+    .receipt-number {
+      flex: 0 0 auto;
+      text-align: left;
+    }
+
+    .receipt-number span {
+      display: block;
+      color: var(--muted);
+      font-size: 7.5pt;
+    }
+
+    .receipt-number strong {
+      display: block;
+      margin-top: 0.6mm;
+      font-size: 10.5pt;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      direction: ltr;
+    }
+
+    .receipt-client {
+      display: flex;
+      align-items: center;
+      gap: 4mm;
+      margin-top: 5mm;
+      padding: 4mm;
+      border-radius: 3mm;
+      background: var(--soft);
+    }
+
+    .receipt-client .client-avatar {
+      width: 11mm;
+      height: 11mm;
+      flex-basis: 11mm;
+      font-size: 13pt;
+    }
+
+    .receipt-client-name {
+      font-size: 13pt;
+      font-weight: 700;
+      line-height: 1.35;
+      overflow-wrap: anywhere;
+    }
+
+    .receipt-client-meta {
+      margin-top: 0.8mm;
+      color: var(--muted);
+      font-size: 8.3pt;
+      line-height: 1.55;
+    }
+
+    .receipt-client-meta span {
+      display: inline-block;
+      margin-inline-end: 4mm;
+    }
+
+    .receipt-client-address {
+      margin-top: 0.8mm;
+      color: var(--muted);
+      font-size: 8pt;
+      line-height: 1.55;
+      overflow-wrap: anywhere;
+    }
+
+    .receipt-amount-panel {
+      margin-top: 5mm;
+      padding: 5mm;
+      border-radius: 3mm;
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      color: #ffffff;
+      text-align: center;
+    }
+
+    .receipt-amount-panel.type-debt {
+      background: linear-gradient(135deg, #991b1b 0%, #7f1d1d 100%);
+    }
+
+    .receipt-amount-panel.type-payment {
+      background: linear-gradient(135deg, #047857 0%, #065f46 100%);
+    }
+
+    .receipt-amount-label {
+      color: rgba(255, 255, 255, 0.78);
+      font-size: 8.5pt;
+      font-weight: 600;
+    }
+
+    .receipt-amount {
+      margin-top: 1mm;
+      font-size: 26pt;
+      font-weight: 700;
+      line-height: 1.3;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    .receipt-amount .currency {
+      font-size: 11pt;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.78);
+    }
+
+    .receipt-amount-meta {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 3mm;
+      margin-top: 1.5mm;
+      color: rgba(255, 255, 255, 0.82);
+      font-size: 8pt;
+    }
+
+    .receipt-details {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 3mm 8mm;
+      margin-top: 5mm;
+    }
+
+    .receipt-detail {
+      padding-bottom: 2.5mm;
+      border-bottom: 0.25mm solid var(--line);
+    }
+
+    .receipt-detail.full {
+      grid-column: 1 / -1;
+    }
+
+    .receipt-detail .label {
+      display: block;
+      margin-bottom: 0.6mm;
+      color: var(--muted);
+      font-size: 7.6pt;
+    }
+
+    .receipt-detail .value {
+      display: block;
+      font-size: 9.2pt;
+      font-weight: 600;
+      line-height: 1.55;
+      overflow-wrap: anywhere;
+    }
+
+    .receipt-note {
+      margin-top: 1mm;
+      color: var(--muted);
+      font-size: 8pt;
+      line-height: 1.55;
+      overflow-wrap: anywhere;
+    }
+
+    .receipt-balance {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 5mm;
+      margin-top: 5mm;
+      padding: 3.5mm 4mm;
+      border: 0.3mm solid var(--line);
+      border-radius: 3mm;
+      background: #ffffff;
+    }
+
+    .receipt-balance-label {
+      color: var(--muted);
+      font-size: 8.5pt;
+      font-weight: 600;
+    }
+
+    .receipt-balance-value {
+      font-size: 15pt;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    .receipt-balance-value.balance-positive {
+      color: var(--red);
+    }
+
+    .receipt-balance-value.balance-negative {
+      color: var(--green);
+    }
+
+    .receipt-balance-value.balance-zero {
+      color: var(--green-dark);
+    }
+
+    .receipt-signatures {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14mm;
+      margin-top: 12mm;
+    }
+
+    .receipt-footer {
+      margin-top: 6mm;
+      text-align: center;
+      color: var(--muted);
+      font-size: 8pt;
+      line-height: 1.6;
+    }
+
+    .receipt-footer strong {
+      display: block;
+      color: var(--ink);
+      font-size: 11pt;
+    }
+
+    .receipt-footer .generator {
+      margin-top: 2mm;
+      color: #94a3b8;
+      font-size: 7pt;
+    }
+
+    @media print {
+      .receipt-card,
+      .receipt-amount-panel,
+      .receipt-balance,
+      .receipt-signatures {
+        break-inside: avoid;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="masthead">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">{{SHOP_INITIAL}}</div>
+      <div>
+        <div class="shop-name" dir="auto">{{SHOP_NAME}}</div>
+        <div class="shop-tagline">سجل الديون والحسابات</div>
+        <div class="shop-phone">الهاتف: <span dir="ltr">{{SHOP_PHONE}}</span></div>
+      </div>
+    </div>
+    <div class="doc-meta">
+      <div class="doc-type">إيصال معاملة</div>
+      <div class="doc-number">{{RECEIPT_NUMBER}}</div>
+      <div class="meta-row">
+        <span class="meta-label">تاريخ الإصدار</span>
+        <span class="meta-value" dir="ltr">{{GENERATED_AT}}</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="accent-bar"></div>
+
+  <div class="receipt-wrap">
+    <section class="receipt-card">
+      <div class="receipt-title-row">
+        <div>
+          <h1 class="receipt-title">إيصال معاملة</h1>
+          <div class="receipt-subtitle">إثبات تسجيل حركة مالية في حساب الزبون</div>
+        </div>
+        <div class="receipt-number">
+          <span>رقم الإيصال</span>
+          <strong>{{RECEIPT_NUMBER}}</strong>
+        </div>
+      </div>
+
+      <div class="receipt-client">
+        <div class="client-avatar" aria-hidden="true">{{CLIENT_INITIAL}}</div>
+        <div>
+          <div class="receipt-client-name" dir="auto">{{CLIENT_NAME}}</div>
+          <div class="receipt-client-meta">
+            <span>الهاتف: <span dir="ltr">{{CLIENT_PHONE}}</span></span>
+            <span>رقم الملف: <span dir="ltr">#{{CLIENT_ID}}</span></span>
+          </div>
+          <div class="receipt-client-address">العنوان: {{CLIENT_ADDRESS}}</div>
+        </div>
+      </div>
+
+      <div class="receipt-amount-panel {{ENTRY_TYPE_CLASS}}">
+        <div class="receipt-amount-label">{{ENTRY_TYPE_LABEL}}</div>
+        <div class="receipt-amount" dir="ltr">{{ENTRY_SIGN}}{{ENTRY_AMOUNT}} <span class="currency">{{CURRENCY}}</span></div>
+        <div class="receipt-amount-meta">
+          <span>تاريخ العملية: <span dir="ltr">{{ENTRY_DATE}}</span></span>
+          <span>•</span>
+          <span>{{ENTRY_TYPE_HINT}}</span>
+        </div>
+      </div>
+
+      <div class="receipt-details">
+        <div class="receipt-detail">
+          <span class="label">البيان / السلعة</span>
+          <span class="value">{{ENTRY_DESCRIPTION}}</span>
+        </div>
+        <div class="receipt-detail">
+          <span class="label">طريقة التسجيل</span>
+          <span class="value">قيد يدوي في سجل المحل</span>
+        </div>
+        <div class="receipt-detail full">
+          <span class="label">ملاحظات</span>
+          <span class="value">{{ENTRY_NOTE}}</span>
+        </div>
+      </div>
+
+      <div class="receipt-balance">
+        <span class="receipt-balance-label">{{BALANCE_AFTER_LABEL}}</span>
+        <span class="receipt-balance-value {{BALANCE_AFTER_CLASS}}" dir="ltr">{{BALANCE_AFTER}} {{CURRENCY}}</span>
+      </div>
+
+      <div class="receipt-signatures">
+        <div class="signature">
+          <div class="signature-line"></div>
+          <div class="signature-label">توقيع المحل</div>
+        </div>
+        <div class="signature">
+          <div class="signature-line"></div>
+          <div class="signature-label">توقيع الزبون</div>
+        </div>
+      </div>
+    </section>
+
+    <div class="receipt-footer">
+      <strong>شكراً لتعاملكم معنا</strong>
+      <span>يرجى الاحتفاظ بهذا الإيصال للمراجعة. هذا الإيصال يعكس بيانات المعاملة المسجلة في نظام المحل.</span>
+      <div class="generator">{{SHOP_NAME}} — تم إنشاء هذا المستند بواسطة Credet</div>
+    </div>
+  </div>
+</body>
+</html>

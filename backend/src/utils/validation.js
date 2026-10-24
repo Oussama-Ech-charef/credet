@@ -5,6 +5,7 @@ const { HttpError } = require('./errors');
 const ID_PATTERN = /^\d+$/;
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 const VALID_STATUSES = new Set(['all', 'debt', 'settled']);
+const VALID_REPORT_FILTERS = new Set(['all', 'debt_only']);
 
 function parsePositiveId(value, label = 'id') {
   if (typeof value !== 'string' || !ID_PATTERN.test(value)) {
@@ -116,6 +117,28 @@ function parseStatus(value) {
   return normalized;
 }
 
+function parseReportFilter(value) {
+  if (value === undefined) {
+    return 'all';
+  }
+
+  if (typeof value !== 'string') {
+    throw new HttpError(400, 'filter must be all or debt_only');
+  }
+
+  const normalized = value.trim().toLowerCase();
+
+  if (normalized === '') {
+    return 'all';
+  }
+
+  if (!VALID_REPORT_FILTERS.has(normalized)) {
+    throw new HttpError(400, 'filter must be all or debt_only');
+  }
+
+  return normalized;
+}
+
 function parseOperationType(value) {
   if (typeof value !== 'string') {
     throw new HttpError(400, 'operation_type must be DEBT or PAYMENT');
@@ -169,6 +192,7 @@ module.exports = {
   normalizeOptionalString,
   parseSearch,
   parseStatus,
+  parseReportFilter,
   parseOperationType,
   parseDate,
   parseOptionalDate,

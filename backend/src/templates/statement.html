@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; font-src data:; img-src data:; script-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta name="author" content="Credet">
+  <title>{{DOCUMENT_TITLE}}</title>
+  <style>
+    {{FONT_CSS}}
+    {{BASE_CSS}}
+
+    .col-date {
+      width: 17%;
+      text-align: center;
+    }
+
+    .col-type {
+      width: 14%;
+      text-align: center;
+    }
+
+    .col-desc {
+      width: 49%;
+      text-align: start;
+    }
+
+    .col-amount {
+      width: 20%;
+      text-align: left;
+    }
+  </style>
+</head>
+<body>
+  <header class="masthead">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">{{SHOP_INITIAL}}</div>
+      <div>
+        <div class="shop-name" dir="auto">{{SHOP_NAME}}</div>
+        <div class="shop-tagline">سجل الديون والحسابات</div>
+        <div class="shop-phone">الهاتف: <span dir="ltr">{{SHOP_PHONE}}</span></div>
+      </div>
+    </div>
+    <div class="doc-meta">
+      <div class="doc-type">وثيقة مالية</div>
+      <div class="doc-number">{{STATEMENT_NUMBER}}</div>
+      <div class="meta-row">
+        <span class="meta-label">تاريخ الإصدار</span>
+        <span class="meta-value" dir="ltr">{{GENERATED_AT}}</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="accent-bar"></div>
+
+  <section class="statement-heading">
+    <div>
+      <div class="eyebrow">كشف حساب الكليان</div>
+      <h1>تفاصيل الحساب</h1>
+      <p class="period">{{PERIOD_LABEL}}</p>
+    </div>
+    <div class="period-chip">عدد المعاملات: <strong>{{ENTRY_COUNT}}</strong></div>
+  </section>
+
+  <section class="client-card">
+    <div class="client-avatar" aria-hidden="true">{{CLIENT_INITIAL}}</div>
+    <div class="client-main">
+      <div class="eyebrow">بيانات الزبون</div>
+      <div class="client-name" dir="auto">{{CLIENT_NAME}}</div>
+      <div class="client-details">
+        <div class="detail-line">
+          <span class="label">الهاتف</span>
+          <span class="value">{{CLIENT_PHONE}}</span>
+        </div>
+        <div class="detail-line">
+          <span class="label">العنوان</span>
+          <span class="value">{{CLIENT_ADDRESS}}</span>
+        </div>
+      </div>
+      {{CLIENT_NOTES_BLOCK}}
+    </div>
+    <div class="client-id">
+      <span>رقم الملف</span>
+      <strong>#{{CLIENT_ID}}</strong>
+    </div>
+  </section>
+
+  <section class="summary-grid">
+    <article class="summary-card">
+      <div class="card-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 19V5a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v14"></path>
+          <path d="M7 16h10"></path>
+          <path d="M8 9h8"></path>
+          <path d="M8 12h5"></path>
+        </svg>
+      </div>
+      <div class="card-label">مجموع ما أخذ</div>
+      <div class="card-value" dir="ltr">{{TOTAL_DEBT}} <span class="currency">{{CURRENCY}}</span></div>
+      <div class="card-hint">إجمالي الكريدي المسجل على الحساب</div>
+    </article>
+
+    <article class="summary-card payment-card">
+      <div class="card-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 7 9.5 17.5 4 12"></path>
+        </svg>
+      </div>
+      <div class="card-label">مجموع ما دفع</div>
+      <div class="card-value" dir="ltr">{{TOTAL_PAID}} <span class="currency">{{CURRENCY}}</span></div>
+      <div class="card-hint">إجمالي الدفعات المسجلة في الحساب</div>
+    </article>
+
+    <article class="summary-card net-card {{NET_CARD_CLASS}}">
+      <div class="card-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 3v18"></path>
+          <path d="M6 7h9a3 3 0 0 1 0 6H6"></path>
+          <path d="M6 13h10a3 3 0 0 1 0 6H6"></path>
+        </svg>
+      </div>
+      <div class="card-label">{{NET_STATUS_LABEL}}</div>
+      <div class="card-value" dir="ltr">{{NET_BALANCE}} <span class="currency">{{CURRENCY}}</span></div>
+      <div class="card-hint">{{NET_HINT}}</div>
+    </article>
+  </section>
+
+  <div class="summary-note">{{PERIOD_NOTE}}</div>
+
+  <section class="ledger-section">
+    <div class="section-heading">
+      <div>
+        <div class="eyebrow">سجل المعاملات</div>
+        <h2>الحركات المالية</h2>
+      </div>
+      <div class="entries-chip">مرتبة تصاعدياً حسب التاريخ</div>
+    </div>
+
+    <table class="ledger">
+      <thead>
+        <tr>
+          <th class="col-date">التاريخ</th>
+          <th class="col-type">النوع</th>
+          <th class="col-desc">البيان / السلعة</th>
+          <th class="col-amount">المبلغ ({{CURRENCY}})</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{TRANSACTION_ROWS}}
+      </tbody>
+    </table>
+  </section>
+
+  <footer class="document-footer">
+    <div class="footer-main">
+      <div class="thanks-block">
+        <div class="thanks-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 7 9.5 17.5 4 12"></path>
+          </svg>
+        </div>
+        <div>
+          <div class="thanks-title">شكراً لتعاملكم معنا</div>
+          <p class="thanks-copy">نرجو مراجعة هذا الكشف والاحتفاظ به. لأي استفسار بخصوص المعاملات، يرجى التواصل مع المحل.</p>
+        </div>
+      </div>
+
+      <div class="signatures">
+        <div class="signature">
+          <div class="signature-line"></div>
+          <div class="signature-label">توقيع المحل</div>
+        </div>
+        <div class="signature">
+          <div class="signature-line"></div>
+          <div class="signature-label">توقيع الزبون</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-meta">
+      <span>{{SHOP_NAME}} — <span dir="ltr">{{SHOP_PHONE}}</span></span>
+      <span class="generator">تم إنشاء هذا المستند بواسطة Credet</span>
+    </div>
+  </footer>
+</body>
+</html>

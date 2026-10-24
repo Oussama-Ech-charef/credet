@@ -68,13 +68,13 @@ graph LR
 
 ## 📋 Task Checklist for Phase 2
 
-- [ ] Select and install the PDF generator module (`puppeteer` or lightweight Chromium runner).
-- [ ] Embed Arabic Google Font (`Cairo` / `IBM Plex Sans Arabic`) locally in the template assets so PDF generation does not depend on an internet connection.
-- [ ] Create clean, printable HTML/CSS statement template (`src/templates/statement.html`) with RTL support.
-- [ ] Implement `src/services/pdfService.js` to populate data into template and generate PDF buffer.
-- [ ] Create route handler `/api/reports/client/:id/pdf`.
-- [ ] Verify Arabic text rendering (ligatures, diacritics, RTL table alignment, currency formatting in DH).
-- [ ] Add print-optimized CSS rules (`@media print`, page breaks, margin settings).
+- [x] Select and install the PDF generator module (`puppeteer` or lightweight Chromium runner).
+- [x] Embed Arabic Google Font (`Cairo` / `IBM Plex Sans Arabic`) locally in the template assets so PDF generation does not depend on an internet connection.
+- [x] Create clean, printable HTML/CSS statement template (`src/templates/statement.html`) with RTL support.
+- [x] Implement `src/services/pdfService.js` to populate data into template and generate PDF buffer.
+- [x] Create route handler `/api/reports/client/:id/pdf`.
+- [x] Verify Arabic text rendering (ligatures, diacritics, RTL table alignment, currency formatting in DH).
+- [x] Add print-optimized CSS rules (`@media print`, page breaks, margin settings).
 
 ---
 

@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; font-src data:; img-src data:; script-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta name="author" content="Credet">
+  <title>{{DOCUMENT_TITLE}}</title>
+  <style>
+    {{FONT_CSS}}
+    {{BASE_CSS}}
+
+    .report-summary-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .report-summary-grid .card-value {
+      font-size: 12.5pt;
+    }
+
+    .report-summary-grid .card-hint {
+      min-height: 6.5mm;
+    }
+
+    .report-table .col-client {
+      width: 26%;
+      text-align: start;
+    }
+
+    .report-table .col-last {
+      width: 15%;
+      text-align: center;
+    }
+
+    .report-table .col-total {
+      width: 15%;
+      text-align: center;
+    }
+
+    .report-table .col-balance {
+      width: 16%;
+      text-align: center;
+    }
+
+    .report-table .col-status {
+      width: 13%;
+      text-align: center;
+    }
+
+    .client-cell-name {
+      font-weight: 700;
+      line-height: 1.45;
+      overflow-wrap: anywhere;
+    }
+
+    .client-cell-phone {
+      margin-top: 0.5mm;
+      color: var(--muted);
+      font-size: 7.4pt;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .balance-positive {
+      color: var(--red);
+    }
+
+    .balance-negative {
+      color: var(--green);
+    }
+
+    .balance-zero {
+      color: var(--green-dark);
+    }
+
+    .report-totals {
+      margin-top: 5mm;
+      padding: 4mm;
+      border: 0.3mm solid var(--line);
+      border-radius: 3mm;
+      background: var(--soft);
+      break-inside: avoid;
+    }
+
+    .totals-title {
+      color: var(--muted);
+      font-size: 8pt;
+      font-weight: 700;
+    }
+
+    .totals-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 3mm;
+      margin-top: 2.5mm;
+    }
+
+    .total-item span {
+      display: block;
+      color: var(--muted);
+      font-size: 7.6pt;
+    }
+
+    .total-item strong {
+      display: block;
+      margin-top: 0.6mm;
+      color: var(--ink);
+      font-size: 11.5pt;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    .total-item.highlight {
+      padding-inline-start: 3mm;
+      border-inline-start: 0.8mm solid var(--red);
+    }
+
+    .total-item.highlight strong {
+      color: var(--red);
+    }
+
+    .report-footer .thanks-copy {
+      max-width: 150mm;
+    }
+
+    @media print {
+      .report-summary-grid,
+      .report-totals {
+        break-inside: avoid;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="masthead">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">{{SHOP_INITIAL}}</div>
+      <div>
+        <div class="shop-name" dir="auto">{{SHOP_NAME}}</div>
+        <div class="shop-tagline">سجل الديون والحسابات</div>
+        <div class="shop-phone">الهاتف: <span dir="ltr">{{SHOP_PHONE}}</span></div>
+      </div>
+    </div>
+    <div class="doc-meta">
+      <div class="doc-type">تقرير محاسبي</div>
+      <div class="doc-number">{{REPORT_NUMBER}}</div>
+      <div class="meta-row">
+        <span class="meta-label">تاريخ الإصدار</span>
+        <span class="meta-value" dir="ltr">{{GENERATED_AT}}</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="accent-bar"></div>
+
+  <section class="statement-heading">
+    <div>
+      <div class="eyebrow">تقرير الديون العام</div>
+      <h1>ملخص أرصدة الكليان</h1>
+      <p class="period">{{FILTER_LABEL}}</p>
+    </div>
+    <div class="period-chip">عدد الكليان: <strong>{{CLIENT_COUNT}}</strong></div>
+  </section>
+
+  <section class="summary-grid report-summary-grid">
+    <article class="summary-card">
+      <div class="card-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+          <circle cx="9" cy="7" r="4"></circle>
+          <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+        </svg>
+      </div>
+      <div class="card-label">عدد الكليان</div>
+      <div class="card-value" dir="ltr">{{CLIENT_COUNT}}</div>
+      <div class="card-hint">منهم {{DEBTOR_COUNT}} مدين و{{SETTLED_COUNT}} غير مدين</div>
+    </article>
+
+    <article class="summary-card">
+      <div class="card-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 19V5a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v14"></path>
+          <path d="M7 16h10"></path>
+          <path d="M8 9h8"></path>
+          <path d="M8 12h5"></path>
+        </svg>
+      </div>
+      <div class="card-label">مجموع ما أخذ</div>
+      <div class="card-value" dir="ltr">{{TOTAL_DEBT}} <span class="currency">{{CURRENCY}}</span></div>
+      <div class="card-hint">إجمالي الكريدي المسجل لدى جميع الكليان</div>
+    </article>
+
+    <article class="summary-card payment-card">
+      <div class="card-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 7 9.5 17.5 4 12"></path>
+        </svg>
+      </div>
+      <div class="card-label">مجموع ما دفع</div>
+      <div class="card-value" dir="ltr">{{TOTAL_PAID}} <span class="currency">{{CURRENCY}}</span></div>
+      <div class="card-hint">إجمالي الدفعات المسجلة لدى جميع الكليان</div>
+    </article>
+
+    <article class="summary-card net-card net-debt">
+      <div class="card-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 3v18"></path>
+          <path d="M6 7h9a3 3 0 0 1 0 6H6"></path>
+          <path d="M6 13h10a3 3 0 0 1 0 6H6"></path>
+        </svg>
+      </div>
+      <div class="card-label">إجمالي الديون المستحقة</div>
+      <div class="card-value" dir="ltr">{{TOTAL_RECEIVABLE}} <span class="currency">{{CURRENCY}}</span></div>
+      <div class="card-hint">مجموع الأرصدة الموجبة المستحقة على الكليان</div>
+    </article>
+  </section>
+
+  <div class="summary-note">{{FILTER_NOTE}}</div>
+
+  <section class="ledger-section">
+    <div class="section-heading">
+      <div>
+        <div class="eyebrow">قائمة الأرصدة</div>
+        <h2>أرصدة الكليان</h2>
+      </div>
+      <div class="entries-chip">جميع المبالغ بـ {{CURRENCY}}</div>
+    </div>
+
+    <table class="ledger report-table">
+      <thead>
+        <tr>
+          <th class="col-client">الزبون</th>
+          <th class="col-last">آخر معاملة</th>
+          <th class="col-total">مجموع ما أخذ</th>
+          <th class="col-total">مجموع ما دفع</th>
+          <th class="col-balance">الباقي</th>
+          <th class="col-status">الحالة</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{REPORT_ROWS}}
+      </tbody>
+    </table>
+  </section>
+
+  <section class="report-totals">
+    <div class="totals-title">الإجمالي العام</div>
+    <div class="totals-grid">
+      <div class="total-item">
+        <span>مجموع ما أخذ</span>
+        <strong dir="ltr">{{TOTAL_DEBT}} {{CURRENCY}}</strong>
+      </div>
+      <div class="total-item">
+        <span>مجموع ما دفع</span>
+        <strong dir="ltr">{{TOTAL_PAID}} {{CURRENCY}}</strong>
+      </div>
+      <div class="total-item">
+        <span>عدد المدينين</span>
+        <strong>{{DEBTOR_COUNT}}</strong>
+      </div>
+      <div class="total-item highlight">
+        <span>إجمالي المستحق</span>
+        <strong dir="ltr">{{TOTAL_RECEIVABLE}} {{CURRENCY}}</strong>
+      </div>
+    </div>
+  </section>
+
+  <footer class="document-footer report-footer">
+    <div class="footer-main">
+      <div class="thanks-block">
+        <div class="thanks-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 7 9.5 17.5 4 12"></path>
+          </svg>
+        </div>
+        <div>
+          <div class="thanks-title">تم إعداد التقرير بنجاح</div>
+          <p class="thanks-copy">هذا التقرير مخصص لأغراض المراجعة والمحاسبة الداخلية. نرجو مطابقة الأرصدة مع سجلات المحل والاحتفاظ بنسخة من التقرير.</p>
+        </div>
+      </div>
+
+      <div class="signatures">
+        <div class="signature">
+          <div class="signature-line"></div>
+          <div class="signature-label">توقيع المسؤول</div>
+        </div>
+        <div class="signature">
+          <div class="signature-line"></div>
+          <div class="signature-label">ختم المحل</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-meta">
+      <span>{{SHOP_NAME}} — <span dir="ltr">{{SHOP_PHONE}}</span></span>
+      <span class="generator">تم إنشاء هذا المستند بواسطة Credet</span>
+    </div>
+  </footer>
+</body>
+</html>

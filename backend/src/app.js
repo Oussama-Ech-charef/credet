@@ -7,8 +7,10 @@ const apiRouter = require('./routes');
 const { notFound, errorHandler } = require('./middleware/errorHandler');
 
 function buildCorsOptions(originValue) {
+  const exposedHeaders = ['Content-Disposition'];
+
   if (!originValue || originValue === '*') {
-    return { origin: '*' };
+    return { origin: '*', exposedHeaders };
   }
 
   const origins = originValue
@@ -17,10 +19,10 @@ function buildCorsOptions(originValue) {
     .filter(Boolean);
 
   if (origins.length === 0 || origins.includes('*')) {
-    return { origin: '*' };
+    return { origin: '*', exposedHeaders };
   }
 
-  return { origin: origins };
+  return { origin: origins, exposedHeaders };
 }
 
 const app = express();
