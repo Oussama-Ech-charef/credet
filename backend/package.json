@@ -1,0 +1,32 @@
+{
+  "name": "credet-backend",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Credet API and embedded SQLite persistence layer",
+  "main": "src/server.js",
+  "type": "commonjs",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "seed": "node src/db/seed.js",
+    "verify": "node scripts/verify-api.js",
+    "test": "npm run verify"
+  },
+  "keywords": [
+    "credet",
+    "credit-ledger",
+    "express",
+    "sqlite"
+  ],
+  "author": "",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "better-sqlite3": "^13.0.3",
+    "cors": "^2.8.6",
+    "dotenv": "^18.0.9",
+    "express": "^5.3.0"
+  }
+}
