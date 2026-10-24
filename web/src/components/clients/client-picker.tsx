@@ -1,0 +1,82 @@
+"use client";
+
+import { useMemo, useState } from "react";
+import { Avatar } from "@/components/ui/avatar";
+import { EmptyState } from "@/components/ui/empty-state";
+import { SearchField } from "@/components/ui/search-field";
+import { clientMatchesSearch, formatAmount } from "@/lib/format";
+import type { Client } from "@/lib/types";
+
+interface ClientPickerProps {
+  clients: Client[];
+  selectedId: number | null;
+  onSelect: (client: Client) => void;
+  currency?: string;
+}
+
+export function ClientPicker({
+  clients,
+  selectedId,
+  onSelect,
+  currency = "DH",
+}: ClientPickerProps) {
+  const [query, setQuery] = useState("");
+  const filtered = useMemo(
+    () => clients.filter((client) => clientMatchesSearch(client, query)),
+    [clients, query],
+  );
+
+  return (
+    <div className="client-picker">
+      <SearchField
+        autoFocus
+        label="ابحث عن الكليان"
+        onChange={setQuery}
+        placeholder="ابحث بالاسم أو الهاتف..."
+        value={query}
+      />
+      <div
+        aria-label="قائمة الكليان"
+        className="client-picker__list"
+        role="group"
+      >
+        {filtered.length === 0 ? (
+          <EmptyState
+            compact
+            description="جرّب اسمًا أو رقم هاتف آخر."
+            icon="search"
+            title="لا توجد نتيجة"
+          />
+        ) : (
+          filtered.map((client) => (
+            <button
+              className={
+                selectedId === client.id
+                  ? "client-picker__option is-selected"
+                  : "client-picker__option"
+              }
+              key={client.id}
+              onClick={() => onSelect(client)}
+              type="button"
+            >
+              <Avatar name={client.name} size="sm" />
+              <span className="client-picker__identity">
+                <strong>{client.name}</strong>
+                <span>{client.phone || client.address || "بدون بيانات اتصال"}</span>
+              </span>
+              <span
+                className={
+                  client.current_balance > 0
+                    ? "client-picker__balance client-picker__balance--debt"
+                    : "client-picker__balance"
+                }
+              >
+                {formatAmount(client.current_balance, currency)}
+              </span>
+            </button>
+          ))
+        )}
+      </div>
+    </div>
+  );
+}

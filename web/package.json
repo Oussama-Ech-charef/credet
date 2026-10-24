@@ -1,0 +1,26 @@
+{
+  "name": "credet-web",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Credet Arabic RTL web ledger",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "next": "14.2.35",
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.3",
+    "@types/react": "^18.3.20",
+    "@types/react-dom": "^18.3.6",
+    "eslint": "^8.57.1",
+    "eslint-config-next": "14.2.35",
+    "typescript": "^5.8.3"
+  }
+}

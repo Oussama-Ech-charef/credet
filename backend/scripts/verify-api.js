@@ -324,6 +324,60 @@ async function main() {
     assert.equal(preflight.headers.get('access-control-allow-origin'), '*');
   });
 
+  await check('settings API reads, validates, and updates report branding', async () => {
+    let response = await request('GET', '/api/settings');
+    assert.equal(response.status, 200);
+    assert.equal(response.data.shop_name, 'Credet Shop');
+    assert.equal(response.data.shop_phone, '');
+    assert.equal(response.data.currency, 'DH');
+    assert.equal(typeof response.data.updated_at, 'string');
+
+    response = await request('PUT', '/api/settings', {
+      shop_name: 'متجر الأمانة',
+      shop_phone: '06 12 34 56 78',
+      currency: 'MAD',
+    });
+    assert.equal(response.status, 200);
+    assert.equal(response.data.success, true);
+    assert.equal(response.data.settings.shop_name, 'متجر الأمانة');
+    assert.equal(response.data.settings.shop_phone, '06 12 34 56 78');
+    assert.equal(response.data.settings.currency, 'MAD');
+
+    response = await request('GET', '/api/settings');
+    assert.equal(response.status, 200);
+    assert.equal(response.data.shop_name, 'متجر الأمانة');
+    assert.equal(response.data.currency, 'MAD');
+
+    assert.deepEqual(reportService.getShopSettings(), {
+      name: 'متجر الأمانة',
+      phone: '06 12 34 56 78',
+      currency: 'MAD',
+    });
+
+    for (const payload of [
+      {},
+      { shop_name: '' },
+      { shop_name: 'x'.repeat(121) },
+      { shop_phone: 123 },
+      { currency: '' },
+      { currency: 'x'.repeat(11) },
+    ]) {
+      response = await request('PUT', '/api/settings', payload);
+      assert.equal(response.status, 400, JSON.stringify(payload));
+      assert.equal(typeof response.data.error, 'string');
+    }
+
+    response = await request('PUT', '/api/settings', {
+      shop_name: 'Credet Shop',
+      shop_phone: '',
+      currency: 'DH',
+    });
+    assert.equal(response.status, 200);
+    assert.equal(response.data.settings.shop_name, 'Credet Shop');
+    assert.equal(response.data.settings.shop_phone, '');
+    assert.equal(response.data.settings.currency, 'DH');
+  });
+
   await check('empty database backup is a valid SQLite snapshot', async () => {
     const response = await request('GET', '/api/backup/download');
     assert.equal(response.status, 200);

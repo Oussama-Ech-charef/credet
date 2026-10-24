@@ -5,6 +5,7 @@ const { HttpError } = require('../utils/errors');
 const { roundMoney } = require('../utils/money');
 const clientService = require('./clientService');
 const entryService = require('./entryService');
+const settingsService = require('./settingsService');
 
 const CASABLANCA_TIME_ZONE = 'Africa/Casablanca';
 
@@ -53,15 +54,7 @@ function getGeneratedAt(now = new Date()) {
 }
 
 function getShopSettings() {
-  const row = getDb()
-    .prepare('SELECT shop_name, shop_phone, currency FROM app_settings WHERE id = 1')
-    .get();
-
-  return {
-    name: String(row?.shop_name || '').trim() || 'Credet Shop',
-    phone: String(row?.shop_phone || '').trim(),
-    currency: String(row?.currency || '').trim() || 'DH',
-  };
+  return settingsService.getShopSettings();
 }
 
 function getClientStatement(clientId, { from, to } = {}) {

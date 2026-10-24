@@ -77,10 +77,11 @@ graph TD
   - Balance recalculates in real-time on UI upon any change.
 
 ### 4. ⚙️ Settings & Data Backup (`/settings`)
-- Shop name and phone for PDF branding.
+- Shop name, phone, and currency for PDF branding. Editing is backed by `GET /api/settings` and `PUT /api/settings`.
 - **Backup Section**:
   - Button: `💾 تحميل نسخة احتياطية من قاعدة البيانات (credet.db)`.
-  - Button: `📥 استرجاع نسخة احتياطية (Restore Database)`.
+  - Button: `📥 تصدير الكليان والحركات بصيغة JSON`.
+  - Restore is intentionally deferred because the backend has no restore endpoint in this phase. The UI states this explicitly.
 
 ---
 
@@ -95,15 +96,17 @@ graph TD
 
 ## 📋 Task Checklist for Phase 3
 
-- [ ] Initialize Next.js 14 project in `web/` with App Router.
-- [ ] Setup Arabic typography (`Cairo` / `IBM Plex Sans Arabic`), RTL configuration, and color tokens.
-- [ ] Build reusable UI primitives: `Button`, `Input`, `Modal`, `Badge`, `ConfirmDialog`, `StatCard`.
-- [ ] Implement API client service (`src/lib/api.ts`) connecting to Backend.
-- [ ] Build Dashboard page (`app/page.tsx`).
-- [ ] Build Clients list page with real-time search & filters (`app/clients/page.tsx`).
-- [ ] Build Client Ledger page (`app/clients/[id]/page.tsx`) with entry CRUD modals.
-- [ ] Integrate PDF download trigger with progress feedback.
-- [ ] Build Settings & Backup management page (`app/settings/page.tsx`).
+- [x] Initialize Next.js 14 project in `web/` with App Router.
+- [x] Setup Arabic typography (`Cairo` / `IBM Plex Sans Arabic`), RTL configuration, and color tokens.
+- [x] Build reusable UI primitives: `Button`, `Input`, `Modal`, `Badge`, `ConfirmDialog`, `StatCard`.
+- [x] Implement API client service (`src/lib/api.ts`) connecting to Backend.
+- [x] Build Dashboard page (`app/page.tsx`).
+- [x] Build Clients list page with real-time search & filters (`app/clients/page.tsx`).
+- [x] Build Client Ledger page (`app/clients/[id]/page.tsx`) with entry CRUD modals.
+- [x] Integrate PDF download trigger with progress feedback.
+- [x] Build Settings & Backup management page (`app/settings/page.tsx`).
+- [x] Add the supporting `GET/PUT /api/settings` backend contract for shop branding.
+- [x] Verify the production build and the end-to-end API integration.
 
 ---
 

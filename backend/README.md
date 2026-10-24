@@ -2,7 +2,7 @@
 
 Node.js/Express API backed by an embedded SQLite database (`credet.db`) and an A4 PDF report engine for Arabic RTL client statements, transaction receipts, and store-wide debt reports.
 
-Phase 1 provides clients, credit entries (debts and payments), dynamic balances, dashboard statistics, and database backups. Phase 2 adds the PDF engine and report endpoints. The web app, mobile app, authentication, and restore workflow are intentionally not part of these phases.
+Phase 1 provides clients, credit entries (debts and payments), dynamic balances, dashboard statistics, and database backups. Phase 2 adds the PDF engine and report endpoints. The Phase 3 web client consumes this API. The Expo mobile app, authentication, and restore workflow are intentionally not part of these phases.
 
 ## Requirements
 
@@ -275,6 +275,26 @@ Delete response:
 - `total_collected_today`: payments dated today.
 - `recent_activity`: the 10 most recently created entries across active clients.
 
+### Settings
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/api/settings` | Read the shop name, phone, currency, and last update timestamp. |
+| `PUT` | `/api/settings` | Update one or more settings fields. |
+
+Settings response:
+
+```json
+{
+  "shop_name": "Credet Shop",
+  "shop_phone": "",
+  "currency": "DH",
+  "updated_at": "2026-10-24 12:00:00"
+}
+```
+
+`shop_name` is required when present and limited to 120 characters. `shop_phone` is optional and limited to 40 characters. `currency` is required when present and limited to 10 characters. The PDF templates read the same row, so a saved shop name and phone appear on the next generated statement or receipt.
+
 ### Backups
 
 | Method | Endpoint | Description |
@@ -397,6 +417,7 @@ The script starts the Express app on an ephemeral loopback port with a temporary
 - Concurrent writes and balance recalculation after every change.
 - Cascading client deletion and database-level constraint checks.
 - Stats consistency, recent activity, SQLite snapshot backup, JSON export.
+- Settings read/update, validation limits, and PDF branding consistency.
 - PDF response headers, `%PDF-`/`%%EOF` markers, A4 geometry, page counts, Arabic text, and embedded Cairo font.
 - Warm PDF generation below 1.5 seconds, including a second render.
 - Statement date filters and invalid/reversed date handling.
@@ -409,7 +430,7 @@ The script starts the Express app on an ephemeral loopback port with a temporary
 A successful run ends with:
 
 ```text
-All 32 checks passed.
+All 33 checks passed.
 ```
 
 The automated PDF checks verify structure, headers, page geometry, text presence, embedded font, timing, and escaping. They do not perform glyph-level visual comparison. Manual visual QA was also performed by opening generated sample PDFs in Chrome's PDF viewer and checking Arabic shaping, RTL table alignment, card colors, footer placement, and page breaks.
@@ -430,10 +451,9 @@ Phases 1 and 2 follow the documented single-administrator model and do not imple
 
 ## Deferred to later phases
 
-- Next.js web client (Phase 3).
 - React Native/Expo mobile client (Phase 4).
 - Authentication/PIN enforcement.
-- Database restore and settings CRUD endpoints.
+- Database restore.
 - Pagination for very large client lists (not required by the Phase 1 API contract).
 - Per-IP rate limiting for expensive PDF endpoints.
 
@@ -461,6 +481,7 @@ backend/
 │   │   ├── entryService.js
 │   │   ├── statsService.js
 │   │   ├── backupService.js
+│   │   ├── settingsService.js  # Shop identity shared by API and PDFs
 │   │   ├── reportService.js    # Statement/report/receipt data assembly
 │   │   ├── templateService.js  # Escaping, formatting, HTML rendering
 │   │   └── pdfService.js       # Puppeteer lifecycle and PDF generation

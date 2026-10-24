@@ -33,6 +33,7 @@ pnpm-debug.log*
 
 # Tooling and local agent caches
 .freebuff/
+.impeccable/
 .temp/
 .tmp/
 
