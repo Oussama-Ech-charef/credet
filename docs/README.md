@@ -19,6 +19,7 @@ This directory contains the detailed engineering documentation and phase breakdo
 | **Phase 5** | [`phase-5-client-management-mobile.md`](phases/phase-5-client-management-mobile.md) | Add Create / Edit / Delete client screens to the mobile app. New client form, edit form pre-filled from Firestore, archive confirmation dialog. |
 | **Phase 6** | [`phase-6-web-firebase.md`](phases/phase-6-web-firebase.md) | Migrate the Next.js web app from the Express/SQLite HTTP backend to Firebase Cloud Firestore — same database as the mobile app, no local server required. |
 | **Phase 7** | [`phase-7-apk-eas-build.md`](phases/phase-7-apk-eas-build.md) | Build a standalone Android APK using EAS Build. Install Credet on any Android phone without Expo Go or a QR code. |
+| **Phase 8** | [`phase-8-overpayment-handling.md`](phases/phase-8-overpayment-handling.md) | Overpayment handling & Smart Change Calculator. Eliminates negative balance displays (`-`) across all screens/statements and adds change calculation in payment modals. |
 
 ---
 
@@ -54,7 +55,8 @@ This directory contains the detailed engineering documentation and phase breakdo
 | **Phase 4** | ✅ Complete | Expo mobile client in `mobile/` — Firebase Firestore, offline cache, RTL, PDF (expo-print), WhatsApp sharing. |
 | **Phase 5** | 🔲 Pending | Client CRUD screens on mobile. |
 | **Phase 6** | 🔲 Pending | Web app → Firebase migration. |
-| **Phase 7** | 🔲 Pending | EAS Build → standalone Android APK. |
+| **Phase 7** | ✅ Complete | Standalone APK build configured and generated via EAS (`preview` profile). |
+| **Phase 8** | ✅ Complete | Overpayment handling & Smart Change Calculator across web, mobile, WhatsApp statements, and PDF exports. |
 
 ---
 

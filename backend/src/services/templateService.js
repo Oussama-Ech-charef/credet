@@ -81,7 +81,7 @@ function escapeMultiline(value) {
 }
 
 function formatMoney(value) {
-  return MONEY_FORMATTER.format(roundMoney(value));
+  return MONEY_FORMATTER.format(Math.abs(roundMoney(value)));
 }
 
 function formatDate(value) {
@@ -116,7 +116,7 @@ function formatNetLabel(balance) {
   }
 
   if (balance < 0) {
-    return 'رصيد لصالح العميل';
+    return 'رصيد لصالح العميل (باقي)';
   }
 
   return 'الحساب مسدد';
@@ -152,7 +152,7 @@ function formatBalanceLabel(balance) {
   }
 
   if (balance < 0) {
-    return 'رصيد لصالحه';
+    return 'رصيد لصالحه (باقي)';
   }
 
   return 'مسدد';
@@ -390,6 +390,10 @@ function renderReceipt(data) {
   const note = data.entry.note
     ? escapeMultiline(data.entry.note)
     : 'لا توجد ملاحظات.';
+  const balanceAfterLabel =
+    data.balance_after < 0
+      ? 'الرصيد لصالح العميل (باقي)'
+      : type.balanceLabel;
 
   return renderTemplate(receiptTemplate, {
     FONT_CSS,
@@ -415,7 +419,7 @@ function renderReceipt(data) {
     ENTRY_NOTE: note,
     BALANCE_AFTER: formatMoney(data.balance_after),
     BALANCE_AFTER_CLASS: formatBalanceClass(data.balance_after),
-    BALANCE_AFTER_LABEL: escapeHtml(type.balanceLabel),
+    BALANCE_AFTER_LABEL: escapeHtml(balanceAfterLabel),
     CURRENCY: escapeHtml(data.shop.currency),
   }, 'receipt.html');
 }

@@ -31,7 +31,7 @@ export function generateClientStatementHtml(
 ): string {
   const balance = data.current_balance;
   const netClass = balance > 0 ? "net-debt" : balance < 0 ? "net-credit" : "net-settled";
-  const netLabel = balance > 0 ? "الرصيد الصافي المستحق" : balance < 0 ? "رصيد لصالح العميل" : "الحساب مسدد";
+  const netLabel = balance > 0 ? "الرصيد الصافي المستحق" : balance < 0 ? "رصيد لصالح العميل (باقي)" : "الحساب مسدد";
   const netHint = balance > 0 ? "مبلغ مستحق على العميل، يرجى سداده." : balance < 0 ? "رصيد إضافي لصالح العميل." : "لا يوجد مبلغ مستحق على العميل.";
 
   const now = new Date();
@@ -142,9 +142,9 @@ export function generateClientStatementHtml(
           color: #991B1B;
         }
         .net-credit {
-          background: #EFF6FF;
-          border-color: #BFDBFE;
-          color: #1E40AF;
+          background: #ECFDF5;
+          border-color: #A7F3D0;
+          color: #047857;
         }
         .net-settled {
           background: #F0FDF4;
@@ -210,7 +210,7 @@ export function generateClientStatementHtml(
         </div>
         <div class="card ${netClass}">
           <div class="card-label">${netLabel}</div>
-          <div class="card-val" dir="ltr">${formatMoney(data.current_balance)} ${escapeHtml(shop.currency)}</div>
+          <div class="card-val" dir="ltr">${formatMoney(Math.abs(data.current_balance))} ${escapeHtml(shop.currency)}</div>
           <div style="font-size: 10px; margin-top: 2px;">${netHint}</div>
         </div>
       </div>

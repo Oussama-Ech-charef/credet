@@ -12,6 +12,7 @@ import {
 
 import { Avatar } from "@/components/ui/avatar";
 import { AppText } from "@/components/ui/app-text";
+import { Badge } from "@/components/ui/badge";
 import { AppModal } from "@/components/ui/modal";
 import { colors, fonts, radius, spacing } from "@/constants/theme";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
@@ -110,12 +111,18 @@ export function ClientPickerModal({
           }
           renderItem={({ item }) => {
             const selected = item.id === selectedId;
-            const balanceColor =
+            const balanceTone =
               item.current_balance > 0
-                ? colors.debtText
+                ? "debt"
                 : item.current_balance < 0
-                  ? colors.paymentText
-                  : colors.dim;
+                  ? "payment"
+                  : "neutral";
+            const balanceLabel =
+              item.current_balance > 0
+                ? `عليه: ${formatAmount(item.current_balance, currency)}`
+                : item.current_balance < 0
+                  ? `له: ${formatAmount(Math.abs(item.current_balance), currency)}`
+                  : "مسدد";
 
             return (
               <Pressable
@@ -141,13 +148,9 @@ export function ClientPickerModal({
                   </AppText>
                 </View>
                 <View style={styles.balance}>
-                  <AppText
-                    numberOfLines={1}
-                    style={[styles.balanceAmount, { color: balanceColor }]}
-                    variant="caption"
-                  >
-                    {formatAmount(item.current_balance, currency)}
-                  </AppText>
+                  <Badge dot tone={balanceTone}>
+                    {balanceLabel}
+                  </Badge>
                   {selected ? (
                     <Ionicons
                       color={colors.actionText}
@@ -224,12 +227,7 @@ const styles = StyleSheet.create({
   balance: {
     alignItems: "flex-end",
     gap: 2,
-    maxWidth: 118,
-  },
-  balanceAmount: {
-    fontVariant: ["tabular-nums"],
-    textAlign: "left",
-    writingDirection: "ltr",
+    maxWidth: 150,
   },
   empty: {
     alignItems: "center",

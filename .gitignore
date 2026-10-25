@@ -77,3 +77,8 @@ web-build/
 *.keystore
 *.jks
 .eas/
+
+# Local runner scripts
+run-web.ps1
+run-mobile.ps1
+*.ps1

@@ -8,6 +8,7 @@ import {
   type FormEvent,
 } from "react";
 import { ClientPicker } from "@/components/clients/client-picker";
+import { ChangeCalculator } from "@/components/ledger/change-calculator";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Field, Input } from "@/components/ui/field";
@@ -15,7 +16,12 @@ import { Icon } from "@/components/ui/icon";
 import { Modal } from "@/components/ui/modal";
 import { useToast } from "@/hooks/use-toast";
 import { api, apiErrorMessage } from "@/lib/api";
-import { formatAmount, todayInputValue } from "@/lib/format";
+import {
+  balanceLabel,
+  formatAmount,
+  roundAmount,
+  todayInputValue,
+} from "@/lib/format";
 import {
   isValidDateInput,
   normalizeDigits,
@@ -109,6 +115,45 @@ export function QuickEntryModal({
   }, [open]);
 
   const isDebt = operationType === "DEBT";
+  const currentDebt = Math.max(
+    0,
+    roundAmount(selectedClient?.current_balance ?? 0),
+  );
+  const enteredAmount = parseAmountInput(amount).value ?? 0;
+  const changeDue = roundAmount(enteredAmount - currentDebt);
+
+  function handleReturnChange() {
+    setAmount(currentDebt.toFixed(2));
+    setErrors((current) => ({ ...current, amount: undefined }));
+    setFormError("");
+
+    window.requestAnimationFrame(() => {
+      amountRef.current?.focus();
+      amountRef.current?.select();
+    });
+  }
+
+  function handleKeepAdvance() {
+    const advanceNote = `سداد كامل الدين مع رصيد متبقٍ قدره ${changeDue.toFixed(
+      2,
+    )} ${currency} لصالح العميل.`;
+
+    setNote((current) => {
+      const trimmed = current.trim();
+
+      if (!trimmed) {
+        return advanceNote;
+      }
+
+      if (trimmed.includes(advanceNote)) {
+        return current;
+      }
+
+      return `${trimmed} — ${advanceNote}`.slice(0, 2000);
+    });
+    setErrors((current) => ({ ...current, note: undefined }));
+    setFormError("");
+  }
 
   function chooseClient(client: Client) {
     setSelectedClient(client);
@@ -236,8 +281,21 @@ export function QuickEntryModal({
                   <span>{selectedClient.phone || "بدون رقم هاتف"}</span>
                 </div>
                 <div className="quick-entry__selected-side">
-                  <span>الرصيد الحالي</span>
-                  <strong>{formatAmount(selectedClient.current_balance, currency)}</strong>
+                  <span>{balanceLabel(selectedClient)}</span>
+                  <strong
+                    className={
+                      selectedClient.current_balance > 0
+                        ? "is-debt"
+                        : selectedClient.current_balance < 0
+                          ? "is-payment"
+                          : "is-settled"
+                    }
+                  >
+                    {formatAmount(
+                      Math.abs(selectedClient.current_balance),
+                      currency,
+                    )}
+                  </strong>
                   <button
                     className="text-link"
                     onClick={() => setSelectedClient(null)}
@@ -307,6 +365,17 @@ export function QuickEntryModal({
               <span className="amount-input__suffix">{currency}</span>
             </div>
           </Field>
+
+          {selectedClient && operationType === "PAYMENT" ? (
+            <ChangeCalculator
+              compact
+              currency={currency}
+              currentDebt={currentDebt}
+              enteredAmount={enteredAmount}
+              onKeepAdvance={handleKeepAdvance}
+              onReturnChange={handleReturnChange}
+            />
+          ) : null}
 
           <Field
             error={errors.description}

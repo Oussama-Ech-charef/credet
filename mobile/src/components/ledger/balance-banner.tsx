@@ -21,19 +21,15 @@ export function BalanceBanner({
 }: BalanceBannerProps) {
   const isDebt = currentBalance > 0;
   const isCredit = currentBalance < 0;
-  const kindColor = isDebt
-    ? colors.debtText
-    : isCredit
-      ? colors.paymentText
-      : colors.text;
+  const kindColor = isDebt ? colors.debtText : colors.paymentText;
   const kindLabel = isDebt
     ? "عليه دين"
     : isCredit
-      ? "رصيد لصالحه"
+      ? "رصيد لصالحه (باقي)"
       : "الحساب مسدد";
   const kindTone = isDebt ? "debt" : "payment";
   const ratio = paidRatio(totalDebt, totalPaid);
-  const displayAmount = isCredit ? Math.abs(currentBalance) : currentBalance;
+  const displayAmount = Math.abs(currentBalance);
   const hint = isDebt
     ? "هذا هو المبلغ المتبقي بعد كل الدفعات."
     : isCredit

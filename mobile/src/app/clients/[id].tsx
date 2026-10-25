@@ -487,6 +487,7 @@ export default function ClientLedgerScreen() {
             clientId={clientId}
             clientName={client?.name ?? ""}
             currency={currency}
+            currentBalance={detail.current_balance}
             entry={editingEntry}
             mode={formMode ?? "debt"}
             onClose={closeForm}

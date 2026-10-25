@@ -2,6 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useEffect, useRef, useState } from "react";
 import { StyleSheet, View, type TextInputInstance } from "react-native";
 
+import { ChangeCalculator } from "@/components/ledger/change-calculator";
 import { AmountInput } from "@/components/ui/amount-input";
 import { AppText } from "@/components/ui/app-text";
 import { Button } from "@/components/ui/button";
@@ -11,7 +12,7 @@ import { SegmentedControl } from "@/components/ui/segmented-control";
 import { colors, radius, spacing } from "@/constants/theme";
 import { useCreateEntryMutation, useUpdateEntryMutation } from "@/hooks/use-entry-mutations";
 import { apiErrorMessage } from "@/lib/api";
-import { formatAmountInput, formatDate } from "@/lib/format";
+import { formatAmountInput, formatDate, roundAmount } from "@/lib/format";
 import { hapticSuccess } from "@/lib/haptics";
 import type { Entry, EntryMutationResponse, OperationType } from "@/lib/types";
 import {
@@ -27,6 +28,7 @@ interface EntryFormModalProps {
   onClose: () => void;
   clientId: number;
   clientName: string;
+  currentBalance: number;
   currency: string;
   mode: EntryFormMode;
   entry?: Entry | null;
@@ -57,6 +59,7 @@ function EntryFormModalContent({
   onClose,
   clientId,
   clientName,
+  currentBalance,
   currency,
   mode,
   entry,
@@ -108,9 +111,40 @@ function EntryFormModalContent({
         ? "تسجيل الدين"
         : "تسجيل الدفعة";
 
+  const currentDebt = Math.max(0, roundAmount(currentBalance));
+  const enteredAmount = Number(parseAmountInput(amount).value ?? 0);
+  const changeDue = roundAmount(enteredAmount - currentDebt);
+
   const resetError = (field: keyof FormErrors) => {
     setErrors((current) => ({ ...current, [field]: undefined }));
     setFormError("");
+  };
+
+  const handleReturnChange = () => {
+    setAmount(currentDebt.toFixed(2));
+    resetError("amount");
+    amountRef.current?.focus();
+  };
+
+  const handleKeepAdvance = () => {
+    const advanceNote = `سداد كامل الدين مع رصيد متبقٍ قدره ${changeDue.toFixed(
+      2,
+    )} ${currency} لصالح العميل.`;
+
+    setNote((current) => {
+      const trimmed = current.trim();
+
+      if (!trimmed) {
+        return advanceNote;
+      }
+
+      if (trimmed.includes(advanceNote)) {
+        return current;
+      }
+
+      return `${trimmed} — ${advanceNote}`.slice(0, 2000);
+    });
+    resetError("note");
   };
 
   const handleSubmit = async () => {
@@ -239,6 +273,16 @@ function EntryFormModalContent({
           onSubmitEditing={() => descriptionRef.current?.focus()}
           value={amount}
         />
+
+        {mode !== "edit" && operationType === "PAYMENT" ? (
+          <ChangeCalculator
+            currency={currency}
+            currentDebt={currentDebt}
+            enteredAmount={enteredAmount}
+            onKeepAdvance={handleKeepAdvance}
+            onReturnChange={handleReturnChange}
+          />
+        ) : null}
 
         <TextField
           error={errors.description}

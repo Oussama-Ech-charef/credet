@@ -7,13 +7,14 @@ import {
   useState,
   type FormEvent,
 } from "react";
+import { ChangeCalculator } from "@/components/ledger/change-calculator";
 import { Button } from "@/components/ui/button";
 import { Field, Input } from "@/components/ui/field";
 import { Icon } from "@/components/ui/icon";
 import { Modal } from "@/components/ui/modal";
 import { useToast } from "@/hooks/use-toast";
 import { api, apiErrorMessage } from "@/lib/api";
-import { todayInputValue } from "@/lib/format";
+import { roundAmount, todayInputValue } from "@/lib/format";
 import {
   isValidDateInput,
   normalizeDigits,
@@ -33,6 +34,7 @@ interface EntryFormModalProps {
   open: boolean;
   onClose: () => void;
   clientId: number;
+  currentBalance: number;
   currency: string;
   mode: EntryFormMode;
   entry?: Entry | null;
@@ -58,6 +60,7 @@ export function EntryFormModal({
   open,
   onClose,
   clientId,
+  currentBalance,
   currency,
   mode,
   entry,
@@ -111,6 +114,43 @@ export function EntryFormModal({
     : isDebt
       ? "تسجيل الدين"
       : "تسجيل الدفعة";
+
+  const currentDebt = Math.max(0, roundAmount(currentBalance));
+  const enteredAmount = parseAmountInput(amount).value ?? 0;
+  const changeDue = roundAmount(enteredAmount - currentDebt);
+
+  function handleReturnChange() {
+    setAmount(currentDebt.toFixed(2));
+    setErrors((current) => ({ ...current, amount: undefined }));
+    setFormError("");
+
+    window.requestAnimationFrame(() => {
+      amountRef.current?.focus();
+      amountRef.current?.select();
+    });
+  }
+
+  function handleKeepAdvance() {
+    const advanceNote = `سداد كامل الدين مع رصيد متبقٍ قدره ${changeDue.toFixed(
+      2,
+    )} ${currency} لصالح العميل.`;
+
+    setNote((current) => {
+      const trimmed = current.trim();
+
+      if (!trimmed) {
+        return advanceNote;
+      }
+
+      if (trimmed.includes(advanceNote)) {
+        return current;
+      }
+
+      return `${trimmed} — ${advanceNote}`.slice(0, 2000);
+    });
+    setErrors((current) => ({ ...current, note: undefined }));
+    setFormError("");
+  }
 
   function validate(): boolean {
     const nextErrors: FormErrors = {};
@@ -253,6 +293,16 @@ export function EntryFormModal({
             <span className="amount-input__suffix">{currency}</span>
           </div>
         </Field>
+
+        {!isEditing && operationType === "PAYMENT" ? (
+          <ChangeCalculator
+            currency={currency}
+            currentDebt={currentDebt}
+            enteredAmount={enteredAmount}
+            onKeepAdvance={handleKeepAdvance}
+            onReturnChange={handleReturnChange}
+          />
+        ) : null}
 
         <Field
           error={errors.description}

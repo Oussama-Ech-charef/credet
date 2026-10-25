@@ -24,6 +24,7 @@ import {
   formatMovementCount,
   normalizePhoneForTel,
   normalizePhoneForWhatsApp,
+  statementMessage,
 } from "@/lib/format";
 import type {
   ClientDetailResponse,
@@ -51,7 +52,7 @@ export default function ClientLedgerPage() {
   const params = useParams();
   const rawId = Array.isArray(params.id) ? params.id[0] : params.id;
   const clientId = Number(rawId);
-  const { currency } = useSettings();
+  const { currency, settings } = useSettings();
   const { toast } = useToast();
   const [clientData, setClientData] = useState<ClientDetailResponse | null>(null);
   const [entries, setEntries] = useState<Entry[]>([]);
@@ -239,6 +240,19 @@ export default function ClientLedgerPage() {
   const client = clientData?.client;
   const phone = client?.phone?.trim();
   const whatsapp = phone ? normalizePhoneForWhatsApp(phone) : "";
+  const whatsappStatementHref =
+    whatsapp && client && clientData
+      ? `https://wa.me/${whatsapp}?text=${encodeURIComponent(
+          statementMessage({
+            clientName: client.name,
+            shopName: settings?.shop_name || "دفتر الديون",
+            totalDebt: clientData.total_debt,
+            totalPaid: clientData.total_paid,
+            currentBalance: clientData.current_balance,
+            currency,
+          }),
+        )}`
+      : "";
   const deleteDescription = useMemo(() => {
     if (!deleteTarget || !client) {
       return "";
@@ -385,6 +399,18 @@ export default function ClientLedgerPage() {
           >
             كشف PDF
           </Button>
+          {whatsappStatementHref ? (
+            <a
+              aria-label={`إرسال كشف حساب ${client.name} عبر واتساب`}
+              className="btn btn--outline"
+              href={whatsappStatementHref}
+              rel="noreferrer"
+              target="_blank"
+            >
+              <Icon name="message" size={18} />
+              <span className="btn__label">كشف واتساب</span>
+            </a>
+          ) : null}
         </div>
       </header>
 
@@ -443,6 +469,7 @@ export default function ClientLedgerPage() {
       <EntryFormModal
         clientId={clientId}
         currency={currency}
+        currentBalance={clientData.current_balance}
         entry={entryModal?.entry}
         mode={entryModal?.mode || "debt"}
         onClose={() => setEntryModal(null)}

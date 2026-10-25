@@ -31,8 +31,15 @@ const weekdayFormatter = new Intl.DateTimeFormat("ar-MA", {
   numberingSystem: "latn",
 });
 
+export function roundAmount(value: number): number {
+  return Number.isFinite(value) ? Math.round(value * 100) / 100 : 0;
+}
+
+// Balances are never shown as negative to the merchant: credits are formatted
+// as positive amounts and labelled separately (`رصيد لصالحه` / `له`).
 export function formatAmount(value: number, currency = "DH"): string {
-  return `${amountFormatter.format(Number.isFinite(value) ? value : 0)} ${currency}`;
+  const safeValue = Number.isFinite(value) ? Math.abs(value) : 0;
+  return `${amountFormatter.format(roundAmount(safeValue))} ${currency}`;
 }
 
 export function formatSignedAmount(
@@ -225,10 +232,22 @@ export function balanceLabel(client: Pick<Client, "current_balance">): string {
   }
 
   if (client.current_balance < 0) {
-    return "رصيد لصالحه";
+    return "رصيد لصالحه (باقي)";
   }
 
   return "الحساب مسدد";
+}
+
+export function balanceHint(balance: number): string {
+  if (balance > 0) {
+    return "هذا هو المبلغ المتبقي على العميل بعد كل الدفعات.";
+  }
+
+  if (balance < 0) {
+    return "الرصيد لصالح العميل، أي أنه دفع أكثر مما أخذ.";
+  }
+
+  return "لا يوجد رصيد متبقٍ على هذا الحساب.";
 }
 
 export function paidRatio(totalDebt: number, totalPaid: number): number {
@@ -249,4 +268,37 @@ export function clientMatchesSearch(client: Client, query: string): boolean {
   return [client.name, client.phone ?? "", client.address ?? ""].some((value) =>
     value.toLowerCase().includes(normalized),
   );
+}
+
+export function statementMessage({
+  clientName,
+  shopName,
+  totalDebt,
+  totalPaid,
+  currentBalance,
+  currency = "DH",
+}: {
+  clientName: string;
+  shopName: string;
+  totalDebt: number;
+  totalPaid: number;
+  currentBalance: number;
+  currency?: string;
+}): string {
+  const isCredit = currentBalance < 0;
+
+  const balanceLine = isCredit
+    ? `- رصيد لصالح العميل (باقي): ${formatAmount(Math.abs(currentBalance), currency)}`
+    : currentBalance > 0
+      ? `- الرصيد المستحق (دين): ${formatAmount(currentBalance, currency)}`
+      : `- حالة الحساب: الحساب مسدد بالكامل (${formatAmount(0, currency)})`;
+
+  return [
+    `السلام عليكم، ${clientName}:`,
+    `هذا كشف حسابك من ${shopName}:`,
+    `- إجمالي الديون: ${formatAmount(totalDebt, currency)}`,
+    `- إجمالي المدفوع: ${formatAmount(totalPaid, currency)}`,
+    balanceLine,
+    "شكرًا لتعاملكم معنا.",
+  ].join("\n");
 }

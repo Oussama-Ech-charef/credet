@@ -27,7 +27,7 @@ function balanceBadge(client: Client, currency: string) {
   if (client.current_balance < 0) {
     return (
       <Badge dot tone="payment">
-        رصيد لصالحه {formatAmount(Math.abs(client.current_balance), currency)}
+        له: {formatAmount(Math.abs(client.current_balance), currency)}
       </Badge>
     );
   }

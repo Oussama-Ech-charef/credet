@@ -48,33 +48,44 @@ export function ClientPicker({
             title="لا توجد نتيجة"
           />
         ) : (
-          filtered.map((client) => (
-            <button
-              className={
-                selectedId === client.id
-                  ? "client-picker__option is-selected"
-                  : "client-picker__option"
-              }
-              key={client.id}
-              onClick={() => onSelect(client)}
-              type="button"
-            >
-              <Avatar name={client.name} size="sm" />
-              <span className="client-picker__identity">
-                <strong>{client.name}</strong>
-                <span>{client.phone || client.address || "بدون بيانات اتصال"}</span>
-              </span>
-              <span
+          filtered.map((client) => {
+            const balanceText =
+              client.current_balance < 0
+                ? `له: ${formatAmount(Math.abs(client.current_balance), currency)}`
+                : client.current_balance > 0
+                  ? formatAmount(client.current_balance, currency)
+                  : "مسدد";
+
+            return (
+              <button
                 className={
-                  client.current_balance > 0
-                    ? "client-picker__balance client-picker__balance--debt"
-                    : "client-picker__balance"
+                  selectedId === client.id
+                    ? "client-picker__option is-selected"
+                    : "client-picker__option"
                 }
+                key={client.id}
+                onClick={() => onSelect(client)}
+                type="button"
               >
-                {formatAmount(client.current_balance, currency)}
-              </span>
-            </button>
-          ))
+                <Avatar name={client.name} size="sm" />
+                <span className="client-picker__identity">
+                  <strong>{client.name}</strong>
+                  <span>{client.phone || client.address || "بدون بيانات اتصال"}</span>
+                </span>
+                <span
+                  className={
+                    client.current_balance > 0
+                      ? "client-picker__balance client-picker__balance--debt"
+                      : client.current_balance < 0
+                        ? "client-picker__balance client-picker__balance--payment"
+                        : "client-picker__balance"
+                  }
+                >
+                  {balanceText}
+                </span>
+              </button>
+            );
+          })
         )}
       </div>
     </div>

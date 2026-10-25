@@ -24,7 +24,7 @@ import { colors, radius, spacing } from "@/constants/theme";
 import { useClients, useShopSettings } from "@/hooks/use-credet-queries";
 import { useCreateEntryMutation } from "@/hooks/use-entry-mutations";
 import { apiErrorMessage } from "@/lib/api";
-import { formatAmount } from "@/lib/format";
+import { balanceLabel, formatAmount } from "@/lib/format";
 import { hapticSuccess } from "@/lib/haptics";
 import type { Client, OperationType } from "@/lib/types";
 import { parseAmountInput } from "@/lib/validation";
@@ -260,7 +260,7 @@ export default function QuickEntryScreen() {
               {selectedClient ? (
                 <View style={styles.clientBalance}>
                   <AppText tone="dim" variant="caption">
-                    الرصيد
+                    {balanceLabel(selectedClient.current_balance)}
                   </AppText>
                   <AppText
                     numberOfLines={1}
@@ -270,14 +270,15 @@ export default function QuickEntryScreen() {
                         color:
                           selectedClient.current_balance > 0
                             ? colors.debtText
-                            : selectedClient.current_balance < 0
-                              ? colors.paymentText
-                              : colors.muted,
+                            : colors.paymentText,
                       },
                     ]}
                     variant="caption"
                   >
-                    {formatAmount(selectedClient.current_balance, currency)}
+                    {formatAmount(
+                      Math.abs(selectedClient.current_balance),
+                      currency,
+                    )}
                   </AppText>
                 </View>
               ) : (

@@ -32,9 +32,15 @@ const arabicWeekdays = [
   "السبت",
 ];
 
+export function roundAmount(value: number): number {
+  return Number.isFinite(value) ? Math.round(value * 100) / 100 : 0;
+}
+
+// Credits are always rendered as positive amounts; the UI labels them as
+// `رصيد لصالحه (باقي)` / `له` rather than showing a negative balance.
 export function formatAmount(value: number, currency = "DH"): string {
-  const safeValue = Number.isFinite(value) ? value : 0;
-  return `${amountFormatter.format(safeValue)} ${currency}`;
+  const safeValue = Number.isFinite(value) ? Math.abs(value) : 0;
+  return `${amountFormatter.format(roundAmount(safeValue))} ${currency}`;
 }
 
 export function formatSignedAmount(
@@ -217,7 +223,7 @@ export function balanceLabel(balance: number): string {
   }
 
   if (balance < 0) {
-    return "رصيد لصالحه";
+    return "رصيد لصالحه (باقي)";
   }
 
   return "الحساب مسدد";
@@ -278,12 +284,19 @@ export function statementMessage({
   currentBalance: number;
   currency?: string;
 }): string {
+  const balanceLine =
+    currentBalance < 0
+      ? `- رصيد لصالحه (باقي): ${formatAmount(Math.abs(currentBalance), currency)}`
+      : currentBalance > 0
+        ? `- الرصيد المستحق (دين): ${formatAmount(currentBalance, currency)}`
+        : `- حالة الحساب: الحساب مسدد بالكامل (${formatAmount(0, currency)})`;
+
   return [
     `السلام عليكم، ${clientName}:`,
     `هذا كشف حسابك من ${shopName}:`,
     `- إجمالي الديون: ${formatAmount(totalDebt, currency)}`,
     `- إجمالي المدفوع: ${formatAmount(totalPaid, currency)}`,
-    `- الرصيد الصافي: ${formatAmount(currentBalance, currency)}`,
+    balanceLine,
     "شكرًا لتعاملكم معنا.",
   ].join("\n");
 }

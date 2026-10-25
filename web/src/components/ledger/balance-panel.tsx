@@ -1,6 +1,11 @@
 import { Badge } from "@/components/ui/badge";
 import { Icon } from "@/components/ui/icon";
-import { balanceKind, formatAmount, paidRatio } from "@/lib/format";
+import {
+  balanceHint,
+  balanceKind,
+  formatAmount,
+  paidRatio,
+} from "@/lib/format";
 
 interface BalancePanelProps {
   totalDebt: number;
@@ -17,12 +22,18 @@ export function BalancePanel({
 }: BalancePanelProps) {
   const kind = balanceKind(currentBalance);
   const ratio = paidRatio(totalDebt, totalPaid);
+  const panelLabel =
+    kind === "credit"
+      ? "الرصيد لصالح العميل"
+      : kind === "settled"
+        ? "الحساب مسدد"
+        : "الرصيد الصافي المستحق";
   const amountClass =
     kind === "debt"
       ? "balance-panel__amount balance-panel__amount--debt"
       : kind === "credit"
         ? "balance-panel__amount balance-panel__amount--payment"
-        : "balance-panel__amount";
+        : "balance-panel__amount balance-panel__amount--settled";
   const badge =
     kind === "debt" ? (
       <Badge dot tone="debt">
@@ -30,7 +41,7 @@ export function BalancePanel({
       </Badge>
     ) : kind === "credit" ? (
       <Badge dot tone="payment">
-        رصيد لصالحه
+        رصيد لصالحه (باقي)
       </Badge>
     ) : (
       <Badge dot tone="payment">
@@ -43,19 +54,13 @@ export function BalancePanel({
       <div className="balance-panel__main">
         <div className="balance-panel__label" id="balance-title">
           <Icon name="wallet" size={16} />
-          الرصيد الصافي المستحق
+          {panelLabel}
           {badge}
         </div>
         <strong className={amountClass}>
-          {formatAmount(currentBalance, currency)}
+          {formatAmount(Math.abs(currentBalance), currency)}
         </strong>
-        <p className="balance-panel__hint">
-          {kind === "debt"
-            ? "هذا هو المبلغ المتبقي على العميل بعد كل الدفعات."
-            : kind === "credit"
-              ? "الرصيد لصالح العميل، أي أنه دفع أكثر مما أخذ."
-              : "لا يوجد رصيد متبقٍ على هذا الحساب."}
-        </p>
+        <p className="balance-panel__hint">{balanceHint(currentBalance)}</p>
       </div>
 
       <div className="balance-panel__side">
