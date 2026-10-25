@@ -19,7 +19,10 @@ import { SectionHeading } from "@/components/ui/section-heading";
 import { Skeleton, SkeletonList } from "@/components/ui/skeleton";
 import { colors, spacing } from "@/constants/theme";
 import { useClientDetail, useClientEntries, useShopSettings } from "@/hooks/use-credet-queries";
-import { useDeleteEntryMutation } from "@/hooks/use-entry-mutations";
+import {
+  useDeleteClientMutation,
+  useDeleteEntryMutation,
+} from "@/hooks/use-entry-mutations";
 import { apiErrorMessage } from "@/lib/api";
 import { shareDownloadedFile } from "@/lib/files";
 import { formatAmount, formatSignedAmount, statementMessage } from "@/lib/format";
@@ -40,10 +43,13 @@ export default function ClientLedgerScreen() {
   const entriesQuery = useClientEntries(validId ? clientId : null);
   const settingsQuery = useShopSettings();
   const deleteMutation = useDeleteEntryMutation();
+  const deleteClientMutation = useDeleteClientMutation();
   const [formMode, setFormMode] = useState<EntryFormMode | null>(null);
   const [editingEntry, setEditingEntry] = useState<Entry | null>(null);
   const [entryToDelete, setEntryToDelete] = useState<Entry | null>(null);
   const [deleteError, setDeleteError] = useState("");
+  const [clientDeleteOpen, setClientDeleteOpen] = useState(false);
+  const [clientDeleteError, setClientDeleteError] = useState("");
   const [sharingText, setSharingText] = useState(false);
   const [sharingPdf, setSharingPdf] = useState(false);
 
@@ -199,6 +205,58 @@ export default function ClientLedgerScreen() {
     }
   };
 
+  const openClientEdit = () => {
+    if (!validId) {
+      return;
+    }
+
+    router.push({
+      pathname: "/clients/[id]/edit",
+      params: { id: String(clientId) },
+    });
+  };
+
+  const openClientDelete = () => {
+    if (!client) {
+      return;
+    }
+
+    setClientDeleteError("");
+    setClientDeleteOpen(true);
+  };
+
+  const closeClientDelete = () => {
+    if (deleteClientMutation.isPending) {
+      return;
+    }
+
+    setClientDeleteOpen(false);
+    setClientDeleteError("");
+  };
+
+  const handleDeleteClient = async () => {
+    if (!client) {
+      return;
+    }
+
+    setClientDeleteError("");
+
+    try {
+      await deleteClientMutation.mutateAsync(clientId);
+      await hapticDelete();
+      setClientDeleteOpen(false);
+      showToast("تم حذف الكليان من القائمة.", "success");
+      router.replace("/clients");
+    } catch (error) {
+      const message = apiErrorMessage(error);
+      setClientDeleteError(
+        /[\u0600-\u06FF]/.test(message)
+          ? message
+          : "تعذر حذف الكليان. تحقق من الاتصال وأعد المحاولة.",
+      );
+    }
+  };
+
   const header = (
     <View style={styles.header}>
       <View style={styles.topBar}>
@@ -207,7 +265,12 @@ export default function ClientLedgerScreen() {
           icon="arrow-forward"
           onPress={goBack}
         />
-        <AppText style={styles.topBarTitle} tone="dim" variant="caption">
+        <AppText
+          numberOfLines={1}
+          style={styles.topBarTitle}
+          tone="dim"
+          variant="caption"
+        >
           كشف الحساب
         </AppText>
         <View style={styles.headerActions}>
@@ -216,6 +279,25 @@ export default function ClientLedgerScreen() {
             disabled={refreshing}
             icon="refresh-outline"
             onPress={refresh}
+            size={40}
+          />
+          <IconButton
+            accessibilityLabel={
+              client ? `تعديل بيانات ${client.name}` : "تعديل بيانات الكليان"
+            }
+            disabled={!client}
+            icon="pencil-outline"
+            onPress={openClientEdit}
+            size={40}
+          />
+          <IconButton
+            accessibilityLabel={client ? `حذف ${client.name}` : "حذف الكليان"}
+            backgroundColor={colors.debtSoft}
+            borderColor="rgba(239, 68, 68, 0.28)"
+            color={colors.debtText}
+            disabled={!client}
+            icon="trash-outline"
+            onPress={openClientDelete}
             size={40}
           />
           {client?.phone ? (
@@ -429,6 +511,17 @@ export default function ClientLedgerScreen() {
             onConfirm={() => void handleDelete()}
             title="حذف الحركة؟"
             visible={Boolean(entryToDelete)}
+          />
+
+          <ConfirmDialog
+            confirmLabel="حذف الكليان"
+            description={`سيتم أرشفة "${detail.client.name}" وإخفاؤه من قائمة الكليان مع الاحتفاظ بسجل حركاته. لا يمكن التراجع عن هذا الإجراء.`}
+            error={clientDeleteError}
+            loading={deleteClientMutation.isPending}
+            onCancel={closeClientDelete}
+            onConfirm={() => void handleDeleteClient()}
+            title="حذف الكليان؟"
+            visible={clientDeleteOpen}
           />
         </>
       ) : null}

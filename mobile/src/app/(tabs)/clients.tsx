@@ -109,12 +109,22 @@ export default function ClientsScreen() {
     <>
       <PageHeader
         action={
-          <IconButton
-            accessibilityLabel="تحديث قائمة الكليان"
-            disabled={clientsQuery.isFetching}
-            icon="refresh-outline"
-            onPress={refresh}
-          />
+          <View style={styles.headerActions}>
+            <IconButton
+              accessibilityLabel="إضافة كليان جديد"
+              backgroundColor={colors.actionSoft}
+              borderColor="rgba(99, 102, 241, 0.28)"
+              color={colors.actionText}
+              icon="person-add-outline"
+              onPress={() => router.push("/clients/new")}
+            />
+            <IconButton
+              accessibilityLabel="تحديث قائمة الكليان"
+              disabled={clientsQuery.isFetching}
+              icon="refresh-outline"
+              onPress={refresh}
+            />
+          </View>
         }
         subtitle="ابحث، تابع الأرصدة، وافتح حساب أي كليان."
         title="الكليان"
@@ -185,7 +195,7 @@ export default function ClientsScreen() {
             <ErrorState message={error} onRetry={refresh} />
           ) : clients.length === 0 ? (
             <EmptyState
-              description="أضف أول كليان من نسخة الويب، ثم ارجع إلى هنا لتسجيل الحركات."
+              description="أضف أول كليان من زر الإضافة بالأعلى، ثم ابدأ تسجيل الحركات."
               icon="people-outline"
               title="لا يوجد كليان بعد"
             />
@@ -225,6 +235,11 @@ export default function ClientsScreen() {
 }
 
 const styles = StyleSheet.create({
+  headerActions: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.xs,
+  },
   listContent: {
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.sm,

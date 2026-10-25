@@ -12,20 +12,35 @@ This directory contains the detailed engineering documentation and phase breakdo
 
 | Phase | File | Scope & Objectives |
 |---|---|---|
-| **Phase 1** | [`phase-1-backend-sqlite.md`](file:///c:/Users/ULTRA%20PC/Desktop/home/credet/docs/phases/phase-1-backend-sqlite.md) | SQLite database setup (credet.db) with ACID transactions & WAL mode, REST API for Clients, Credit Entries (Debts/Payments), real-time balance calculations, and backup endpoints. |
-| **Phase 2** | [`phase-2-pdf-reports.md`](file:///c:/Users/ULTRA%20PC/Desktop/home/credet/docs/phases/phase-2-pdf-reports.md) | PDF export engine with Arabic RTL typography support. Generates printable account statements and transaction receipts ready to share via WhatsApp. |
-| **Phase 3** | [`phase-3-web-app.md`](file:///c:/Users/ULTRA%20PC/Desktop/home/credet/docs/phases/phase-3-web-app.md) | Next.js 14 web application (Arabic RTL UI, quiet dark ledger design, dashboard, debounced client search, client ledger with fast entry CRUD, PDF statements, shop settings, and database/JSON backups). |
-| **Phase 4** | [`phase-4-mobile-app.md`](file:///c:/Users/ULTRA%20PC/Desktop/home/credet/docs/phases/phase-4-mobile-app.md) | Mobile application (React Native / Expo) optimized for handheld usage, quick numeric entry, touch-first ledger navigation, and direct WhatsApp sharing. |
+| **Phase 1** | [`phase-1-backend-sqlite.md`](phases/phase-1-backend-sqlite.md) | SQLite database setup (credet.db) with ACID transactions & WAL mode, REST API for Clients, Credit Entries (Debts/Payments), real-time balance calculations, and backup endpoints. |
+| **Phase 2** | [`phase-2-pdf-reports.md`](phases/phase-2-pdf-reports.md) | PDF export engine with Arabic RTL typography support. Generates printable account statements and transaction receipts ready to share via WhatsApp. |
+| **Phase 3** | [`phase-3-web-app.md`](phases/phase-3-web-app.md) | Next.js 14 web application (Arabic RTL UI, quiet dark ledger design, dashboard, debounced client search, client ledger with fast entry CRUD, PDF statements, shop settings, and database/JSON backups). |
+| **Phase 4** | [`phase-4-mobile-app.md`](phases/phase-4-mobile-app.md) | React Native / Expo mobile app with Arabic RTL UI, TanStack Query, quick entry, client ledger CRUD, WhatsApp/phone sharing, and Firebase Firestore as the cloud database (offline-first). |
+| **Phase 5** | [`phase-5-client-management-mobile.md`](phases/phase-5-client-management-mobile.md) | Add Create / Edit / Delete client screens to the mobile app. New client form, edit form pre-filled from Firestore, archive confirmation dialog. |
+| **Phase 6** | [`phase-6-web-firebase.md`](phases/phase-6-web-firebase.md) | Migrate the Next.js web app from the Express/SQLite HTTP backend to Firebase Cloud Firestore — same database as the mobile app, no local server required. |
+| **Phase 7** | [`phase-7-apk-eas-build.md`](phases/phase-7-apk-eas-build.md) | Build a standalone Android APK using EAS Build. Install Credet on any Android phone without Expo Go or a QR code. |
 
 ---
 
-## 🎯 Architecture Summary
+## 🎯 Architecture (Current — post Phase 4)
 
-- **Database**: SQLite 3 (`credet.db`) — zero external server dependencies, embedded, crash-proof with WAL journaling.
-- **Backend**: Node.js & Express REST API.
-- **Web Client**: Next.js 14 App Router, TypeScript, vanilla CSS with design tokens, Arabic RTL layout (`dir="rtl"`). See [`web/README.md`](../web/README.md).
-- **Mobile Client**: React Native 0.88 + Expo SDK 58 with Expo Router, TypeScript, TanStack Query, Cairo, and persisted LAN server configuration. See [`mobile/README.md`](../mobile/README.md).
-- **Admin**: Single administrator mode (no multi-tenant auth required, optional PIN protection).
+```
+📱 Mobile App (Expo / React Native)          💻 Web App (Next.js 14)
+           │                                           │
+           │  Firebase SDK                  Firebase SDK (Phase 6)
+           │                                           │
+           ▼                                           ▼
+    ☁️ Cloud Firestore (credet-5da9c)  ◄──────────────┘
+       collections: clients, credit_entries, settings, metadata
+           │
+           │ Offline-first local cache (automatic)
+           ▼
+    📱 Phone local cache — works without internet
+```
+
+> **Phase 1–3 backend** (`backend/` — Node.js + Express + SQLite) is kept for
+> reference but is no longer required to run the mobile app. It will be
+> superseded for the web app in Phase 6.
 
 ---
 
@@ -33,22 +48,47 @@ This directory contains the detailed engineering documentation and phase breakdo
 
 | Phase | Status | Notes |
 |---|---|---|
-| **Phase 1** | Complete | Express API, SQLite schema, clients, entries, balances, settings, and backup endpoints. |
-| **Phase 2** | Complete | Arabic RTL PDF statement engine with Puppeteer and Cairo typography. |
-| **Phase 3** | Complete | Next.js Arabic RTL web client in `web/`. |
-| **Phase 4** | Complete | Expo mobile client in `mobile/` with four RTL tabs, client ledger CRUD, quick decimal entry, WhatsApp/phone actions, configurable API URL, PDF sharing, and backups. |
+| **Phase 1** | ✅ Complete | Express API, SQLite schema, clients, entries, balances, settings, backup. |
+| **Phase 2** | ✅ Complete | Arabic RTL PDF statement engine with Puppeteer and Cairo typography. |
+| **Phase 3** | ✅ Complete | Next.js Arabic RTL web client in `web/`. |
+| **Phase 4** | ✅ Complete | Expo mobile client in `mobile/` — Firebase Firestore, offline cache, RTL, PDF (expo-print), WhatsApp sharing. |
+| **Phase 5** | 🔲 Pending | Client CRUD screens on mobile. |
+| **Phase 6** | 🔲 Pending | Web app → Firebase migration. |
+| **Phase 7** | 🔲 Pending | EAS Build → standalone Android APK. |
 
-### Mobile Runbook
+---
+
+## 🚀 Quick Start (Mobile — Current)
 
 ```powershell
-cd backend
-npm start
-
-# In a second terminal:
 cd mobile
 npm install
-Copy-Item .env.example .env   # optional; edit EXPO_PUBLIC_API_URL for a LAN server
-npm start
+# Copy .env.example to .env if you need to override any public vars
+npx expo start
 ```
 
-The mobile app can also use the in-app **الإعدادات → اتصال الخادم** screen to test, save, and reset the API address at runtime. For a physical device, use the computer's LAN IP (for example `http://192.168.1.20:4000/api`), not `localhost`. See the full setup, architecture, verification commands, and native-device notes in [`mobile/README.md`](../mobile/README.md).
+Scan the QR code with **Expo Go** on your phone, or press `a` to open on an Android emulator.
+
+The app connects directly to **Firebase Cloud Firestore** — no backend server needed.
+
+---
+
+## 📁 Repository Layout
+
+```
+credet/
+├── backend/          # Node.js + Express + SQLite (Phase 1–2, optional)
+├── web/              # Next.js 14 web app (Phase 3, Firebase migration in Phase 6)
+├── mobile/           # Expo React Native app (Phase 4 — primary active app)
+│   ├── src/
+│   │   ├── app/      # Expo Router screens
+│   │   ├── components/
+│   │   ├── hooks/    # TanStack Query hooks → firestoreService
+│   │   ├── lib/      # firebase.ts, types.ts, format.ts …
+│   │   ├── providers/
+│   │   └── services/ # firestoreService.ts, mobilePdfService.ts
+│   └── eas.json      # EAS Build config (Phase 7)
+└── docs/
+    ├── README.md     # this file
+    └── phases/       # one detailed spec per phase
+```
