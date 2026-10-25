@@ -84,7 +84,7 @@ export default function SettingsScreen() {
     const curr = shopCurrency.trim();
 
     if (!name) {
-      showToast("اسم المحل مطلوب.", "error");
+      showToast("اسم المتجر مطلوب.", "error");
       return;
     }
     if (!curr) {
@@ -99,7 +99,7 @@ export default function SettingsScreen() {
         currency: curr,
       });
       setEditing(false);
-      showToast("تم حفظ بيانات المحل.", "success");
+      showToast("تم حفظ بيانات المتجر.", "success");
     } catch (error) {
       showToast(apiErrorMessage(error), "error");
     }
@@ -168,17 +168,17 @@ export default function SettingsScreen() {
       <PageHeader
         action={
           <IconButton
-            accessibilityLabel="تحديث بيانات المحل"
+            accessibilityLabel="تحديث بيانات المتجر"
             disabled={settingsQuery.isFetching}
             icon="refresh-outline"
             onPress={() => void settingsQuery.refetch()}
           />
         }
-        subtitle="بيانات المحل وإعدادات التطبيق."
+        subtitle="بيانات المتجر وإعدادات التطبيق."
         title="الإعدادات"
       />
 
-      {/* ── بيانات المحل ── */}
+      {/* ── بيانات المتجر ── */}
       <SectionHeading
         action={
           !editing ? (
@@ -191,7 +191,7 @@ export default function SettingsScreen() {
             />
           ) : null
         }
-        title="بيانات المحل"
+        title="بيانات المتجر"
       />
       {settingsQuery.isPending ? (
         <SkeletonCard rows={4} />
@@ -200,21 +200,21 @@ export default function SettingsScreen() {
           compact
           message={apiErrorMessage(settingsQuery.error)}
           onRetry={() => void settingsQuery.refetch()}
-          title="تعذر تحميل بيانات المحل"
+          title="تعذر تحميل بيانات المتجر"
         />
       ) : editing ? (
         <Card>
           <TextField
-            label="اسم المحل"
+            label="اسم المتجر"
             onChangeText={setShopName}
-            placeholder="مثال: محل البركة"
+            placeholder="مثال: متجر البركة"
             returnKeyType="next"
             value={shopName}
           />
           <View style={styles.fieldGap}>
             <TextField
               keyboardType="phone-pad"
-              label="هاتف المحل"
+              label="هاتف المتجر"
               onChangeText={setShopPhone}
               placeholder="0600000000"
               returnKeyType="next"
@@ -257,7 +257,7 @@ export default function SettingsScreen() {
           <View style={styles.shopHeader}>
             <BrandMark size={46} />
             <View style={styles.shopCopy}>
-              <AppText variant="heading">{settings?.shop_name || "دفتر الكريدي"}</AppText>
+              <AppText variant="heading">{settings?.shop_name || "دفتر الديون"}</AppText>
               <AppText tone="dim" variant="caption">
                 مرتبط بـ Firebase Cloud
               </AppText>
@@ -269,7 +269,7 @@ export default function SettingsScreen() {
           <View style={styles.infoRows}>
             <InfoRow
               icon="call-outline"
-              label="هاتف المحل"
+              label="هاتف المتجر"
               value={settings?.shop_phone || "غير مسجل"}
             />
             <InfoRow icon="cash-outline" label="عملة الحساب" value={currency} />
@@ -292,7 +292,7 @@ export default function SettingsScreen() {
               <AppText variant="bodyStrong">Cloud Firestore</AppText>
               <AppText tone="muted" variant="caption">
                 يعمل التطبيق مباشرة على Firebase بدون خادم محلي. البيانات محفوظة
-                في السحاب وتُزامن تلقائياً مع الهاتف حتى في غياب الإنترنت.
+                في السحابة وتُزامن تلقائياً مع الهاتف حتى في غياب الإنترنت.
               </AppText>
             </View>
             <Badge dot tone="payment">
@@ -302,7 +302,7 @@ export default function SettingsScreen() {
           <View style={styles.firebaseHint}>
             <Ionicons color={colors.paymentText} name="cloud-outline" size={17} />
             <AppText style={styles.hintText} tone="muted" variant="caption">
-              Project ID: <AppText tone="action" variant="caption">credet-5da9c</AppText>
+              معرّف المشروع: <AppText tone="action" variant="caption">credet-5da9c</AppText>
               {"\n"}البيانات محمية ومشفرة — تعمل حتى دون اتصال بالإنترنت.
             </AppText>
           </View>
@@ -359,9 +359,9 @@ export default function SettingsScreen() {
           <View style={styles.aboutRow}>
             <BrandMark size={38} />
             <View style={styles.aboutCopy}>
-              <AppText variant="bodyStrong">Credet · دفتر الكريدي</AppText>
+              <AppText variant="bodyStrong">Credet · دفتر الديون</AppText>
               <AppText tone="dim" variant="caption">
-                الإصدار {Constants.expoConfig?.version ?? "1.0.0"} · واجهة عربية RTL
+                الإصدار {Constants.expoConfig?.version ?? "1.0.0"} · واجهة عربية من اليمين إلى اليسار
               </AppText>
             </View>
           </View>

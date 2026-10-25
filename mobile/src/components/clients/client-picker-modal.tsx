@@ -57,11 +57,11 @@ export function ClientPickerModal({
 
   return (
     <AppModal
-      description="ابحث بالاسم أو رقم الهاتف، ثم اختر الكليان."
+      description="ابحث بالاسم أو رقم الهاتف، ثم اختر العميل."
       onClose={handleClose}
       onShow={handleShow}
       scrollable={false}
-      title="اختر كليان"
+      title="اختر عميلًا"
       visible={visible}
     >
       <View style={styles.body}>
@@ -69,7 +69,7 @@ export function ClientPickerModal({
           <Ionicons color={colors.dim} name="search-outline" size={18} />
           <TextInput
             ref={searchRef}
-            accessibilityLabel="البحث عن كليان"
+            accessibilityLabel="البحث عن عميل"
             autoCapitalize="none"
             autoCorrect={false}
             onChangeText={setSearch}
@@ -103,7 +103,7 @@ export function ClientPickerModal({
               <Ionicons color={colors.dim} name="people-outline" size={28} />
               <AppText style={styles.emptyText} tone="muted" variant="body">
                 {clients.length === 0
-                  ? "لا يوجد كليان بعد. أضف الكليان من نسخة الويب ثم أعد المحاولة."
+                  ? "لا يوجد عميل بعد. أضف عميلًا من نسخة الويب ثم أعد المحاولة."
                   : "لا توجد نتائج مطابقة لبحثك."}
               </AppText>
             </View>

@@ -43,7 +43,7 @@ function translateBadRequest(message: string): string {
   }
 
   if (normalized.includes("name")) {
-    return "اسم الكليان غير صالح.";
+    return "اسم العميل غير صالح.";
   }
 
   return "البيانات المدخلة غير صحيحة.";

@@ -96,7 +96,7 @@ function EntryFormModalContent({
     mode === "edit"
       ? "تعديل الحركة"
       : operationType === "DEBT"
-        ? "تسجيل كريدي"
+        ? "تسجيل دين"
         : "تسجيل دفعة";
   const descriptionLabel = operationType === "DEBT" ? "الوصف / السلعة" : "وصف الدفعة";
   const descriptionPlaceholder =
@@ -105,7 +105,7 @@ function EntryFormModalContent({
     mode === "edit"
       ? "حفظ التعديل"
       : operationType === "DEBT"
-        ? "تسجيل الكريدي"
+        ? "تسجيل الدين"
         : "تسجيل الدفعة";
 
   const resetError = (field: keyof FormErrors) => {
@@ -136,7 +136,7 @@ function EntryFormModalContent({
     }
 
     const finalDescription =
-      description.trim() || (operationType === "DEBT" ? "كريدي" : "دفعة");
+      description.trim() || (operationType === "DEBT" ? "دين" : "دفعة");
     const finalNote = note.trim() || null;
 
     try {
@@ -213,7 +213,7 @@ function EntryFormModalContent({
           options={[
             {
               value: "DEBT",
-              label: "كريدي",
+              label: "دين",
               activeColor: colors.debtText,
               activeBackground: colors.debtSoft,
             },

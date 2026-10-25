@@ -34,7 +34,7 @@ function balanceBadge(client: Client, currency: string) {
 
   return (
     <Badge dot tone="payment">
-      الحساب خالص
+      الحساب مسدد
     </Badge>
   );
 }

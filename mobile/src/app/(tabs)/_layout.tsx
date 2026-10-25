@@ -52,7 +52,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="clients"
         options={{
-          title: "الكليان",
+          title: "العملاء",
           tabBarIcon: ({ color, focused, size }) => (
             <Ionicons
               color={color as string}

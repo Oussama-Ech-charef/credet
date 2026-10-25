@@ -30,13 +30,13 @@ export function ClientPicker({
     <div className="client-picker">
       <SearchField
         autoFocus
-        label="ابحث عن الكليان"
+        label="ابحث عن العميل"
         onChange={setQuery}
         placeholder="ابحث بالاسم أو الهاتف..."
         value={query}
       />
       <div
-        aria-label="قائمة الكليان"
+        aria-label="قائمة العملاء"
         className="client-picker__list"
         role="group"
       >

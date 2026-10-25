@@ -27,10 +27,10 @@ export function BalanceBanner({
       ? colors.paymentText
       : colors.text;
   const kindLabel = isDebt
-    ? "عليه كريدي"
+    ? "عليه دين"
     : isCredit
       ? "رصيد لصالحه"
-      : "الحساب خالص";
+      : "الحساب مسدد";
   const kindTone = isDebt ? "debt" : "payment";
   const ratio = paidRatio(totalDebt, totalPaid);
   const displayAmount = isCredit ? Math.abs(currentBalance) : currentBalance;
@@ -47,7 +47,7 @@ export function BalanceBanner({
         <View style={styles.labelRow}>
           <Ionicons color={colors.muted} name="wallet-outline" size={16} />
           <AppText tone="muted" variant="label">
-            {isCredit ? "الرصيد لصالح الكليان" : "الباقي الصافي الواجب أداؤه"}
+            {isCredit ? "الرصيد لصالح العميل" : "الرصيد الصافي المستحق"}
           </AppText>
         </View>
         <Badge dot tone={kindTone}>

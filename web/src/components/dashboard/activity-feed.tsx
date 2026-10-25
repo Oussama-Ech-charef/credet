@@ -28,10 +28,10 @@ export function ActivityFeed({
           <h2 className="panel__title" id="recent-activity-title">
             آخر الحركات
           </h2>
-          <p className="panel__subtitle">آخر 10 حركات مسجلة في الدفتر</p>
+          <p className="panel__subtitle">آخر 10 حركات مسجلة في السجل</p>
         </div>
         <Link className="panel__link" href="/clients">
-          كل الكليان
+          كل العملاء
           <Icon name="chevron-left" size={14} />
         </Link>
       </header>
@@ -45,7 +45,7 @@ export function ActivityFeed({
                 تسجيل أول حركة
               </Button>
             }
-            description="ستظهر هنا كل حركة كريدي أو دفعة بمجرد تسجيلها."
+            description="ستظهر هنا كل حركة دين أو دفعة بمجرد تسجيلها."
             icon="receipt"
             title="لا توجد حركات بعد"
           />
@@ -82,7 +82,7 @@ export function ActivityFeed({
                     <div className="activity__meta">
                       <span>{relativeDayLabel(item.operation_date)}</span>
                       <span aria-hidden="true"> · </span>
-                      <span>{isDebt ? "كريدي" : "دفعة"}</span>
+                      <span>{isDebt ? "دين" : "دفعة"}</span>
                     </div>
                   </div>
 

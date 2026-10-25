@@ -29,7 +29,7 @@ export function EntryRow({ entry, currency, onEdit, onDelete }: EntryRowProps) {
       />
       <View style={styles.topRow}>
         <Badge dot tone={isDebt ? "debt" : "payment"}>
-          {isDebt ? "كريدي" : "دفعة"}
+          {isDebt ? "دين" : "دفعة"}
         </Badge>
         <AppText tone="dim" variant="caption">
           {formatDate(entry.operation_date)}

@@ -86,7 +86,7 @@ export function ShopProfileForm({ settings }: ShopProfileFormProps) {
           هوية المتجر
         </h2>
         <p className="settings-card__description">
-          تظهر هذه البيانات في رأس كشوف الحساب والفواتير التي تنزّلها من الدفتر.
+          تظهر هذه البيانات في رأس كشوف الحساب والفواتير التي تنزّلها من السجل.
         </p>
       </header>
 

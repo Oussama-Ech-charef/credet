@@ -112,26 +112,26 @@ function formatNetClass(balance) {
 
 function formatNetLabel(balance) {
   if (balance > 0) {
-    return 'الباقي الواجب أداؤه';
+    return 'الرصيد الصافي المستحق';
   }
 
   if (balance < 0) {
-    return 'رصيد لصالح الزبون';
+    return 'رصيد لصالح العميل';
   }
 
-  return 'الحساب خالص';
+  return 'الحساب مسدد';
 }
 
 function formatNetHint(balance) {
   if (balance > 0) {
-    return 'مبلغ مستحق على الزبون، يرجى تسويته.';
+    return 'مبلغ مستحق على العميل، يرجى سداده.';
   }
 
   if (balance < 0) {
-    return 'دفع الزبون أكثر من المستحق، والرصيد لصالحه.';
+    return 'دفع العميل أكثر من المستحق، والرصيد لصالحه.';
   }
 
-  return 'لا يوجد مبلغ مستحق على الزبون.';
+  return 'لا يوجد مبلغ مستحق على العميل.';
 }
 
 function formatBalanceClass(balance) {
@@ -155,7 +155,7 @@ function formatBalanceLabel(balance) {
     return 'رصيد لصالحه';
   }
 
-  return 'خالص';
+  return 'مسدد';
 }
 
 function formatBalanceBadgeClass(balance) {
@@ -174,19 +174,19 @@ function formatEntryType(operationType) {
       badgeClass: 'badge-payment',
       amountClass: 'amount-payment',
       sign: '−',
-      hint: 'خصم المبلغ من رصيد الزبون',
+      hint: 'خصم المبلغ من رصيد العميل',
       balanceLabel: 'الرصيد بعد تسجيل الدفعة',
     };
   }
 
   return {
-    label: 'كريدي',
+    label: 'دين',
     panelClass: 'type-debt',
     badgeClass: 'badge-debt',
     amountClass: 'amount-debt',
     sign: '+',
-    hint: 'أضيف المبلغ إلى رصيد الزبون',
-    balanceLabel: 'الرصيد بعد إضافة الكريدي',
+    hint: 'أضيف المبلغ إلى رصيد العميل',
+    balanceLabel: 'الرصيد بعد إضافة الدين',
   };
 }
 
@@ -278,7 +278,7 @@ function formatReportRows(clients) {
     return formatEmptyRow(
       6,
       'لا توجد بيانات',
-      'لم يتم العثور على كليان مطابقين لهذا التقرير.',
+      'لم يتم العثور على عملاء مطابقين لهذا التقرير.',
     );
   }
 

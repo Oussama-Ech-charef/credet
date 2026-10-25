@@ -29,7 +29,7 @@ export function ActivityRow({
   return (
     <Pressable
       accessibilityLabel={`${activity.client_name}، ${
-        isDebt ? "كريدي" : "دفعة"
+        isDebt ? "دين" : "دفعة"
       }، ${formatSignedAmount(activity.amount, activity.operation_type, currency)}`}
       accessibilityRole="button"
       onPress={onPress}

@@ -6,7 +6,7 @@ import { AppText } from "@/components/ui/app-text";
 import { Card } from "@/components/ui/card";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { colors, spacing } from "@/constants/theme";
-import { formatAmount } from "@/lib/format";
+import { formatAmount, formatMovementCount } from "@/lib/format";
 import type { Client } from "@/lib/types";
 
 interface TopDebtorsProps {
@@ -38,7 +38,7 @@ export function TopDebtors({ clients, currency, onOpen }: TopDebtorsProps) {
                 {client.name}
               </AppText>
               <AppText tone="dim" variant="caption">
-                {client.entries_count} حركة
+                {formatMovementCount(client.entries_count)}
               </AppText>
             </View>
             <AppText style={styles.amount} tone="debt" variant="bodyStrong">

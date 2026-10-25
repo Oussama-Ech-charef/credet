@@ -85,7 +85,7 @@ export function ClientFormModal({
         notes: notes.trim() || null,
       });
 
-      toast("تمت إضافة الكليان إلى الدفتر.");
+      toast("تمت إضافة العميل إلى السجل.");
       onCreated(client);
       onClose();
     } catch (error) {
@@ -110,13 +110,13 @@ export function ClientFormModal({
             type="submit"
             variant="primary"
           >
-            إضافة الكليان
+            إضافة العميل
           </Button>
         </>
       }
       onClose={onClose}
       open={open}
-      title="كليان جديد"
+      title="عميل جديد"
       description="أضف الاسم على الأقل. يمكنك إكمال بقية البيانات لاحقًا."
     >
       <form className="form-stack" id={formId} onSubmit={handleSubmit}>
@@ -156,7 +156,7 @@ export function ClientFormModal({
           <Textarea
             id="client-notes"
             onChange={(event) => setNotes(event.target.value)}
-            placeholder="أي تفاصيل تساعدك على تذكر الكليان..."
+            placeholder="أي تفاصيل تساعدك على تذكر العميل..."
             value={notes}
           />
         </Field>

@@ -16,7 +16,7 @@ interface EntryTableProps {
 function typeBadge(entry: Entry) {
   return entry.operation_type === "DEBT" ? (
     <Badge dot tone="debt">
-      كريدي
+      دين
     </Badge>
   ) : (
     <Badge dot tone="payment">
@@ -47,7 +47,7 @@ export function EntryTable({
     <>
       <div className="table-wrap">
         <table className="ledger-table">
-          <caption className="sr-only">حركة حساب الكليان</caption>
+          <caption className="sr-only">حركة حساب العميل</caption>
           <thead>
             <tr>
               <th scope="col">التاريخ</th>

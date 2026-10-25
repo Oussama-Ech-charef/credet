@@ -26,7 +26,7 @@ export function BalancePanel({
   const badge =
     kind === "debt" ? (
       <Badge dot tone="debt">
-        عليه كريدي
+        عليه دين
       </Badge>
     ) : kind === "credit" ? (
       <Badge dot tone="payment">
@@ -34,7 +34,7 @@ export function BalancePanel({
       </Badge>
     ) : (
       <Badge dot tone="payment">
-        الحساب خالص
+        الحساب مسدد
       </Badge>
     );
 
@@ -43,7 +43,7 @@ export function BalancePanel({
       <div className="balance-panel__main">
         <div className="balance-panel__label" id="balance-title">
           <Icon name="wallet" size={16} />
-          الباقي الصافي الواجب أداؤه
+          الرصيد الصافي المستحق
           {badge}
         </div>
         <strong className={amountClass}>
@@ -51,9 +51,9 @@ export function BalancePanel({
         </strong>
         <p className="balance-panel__hint">
           {kind === "debt"
-            ? "هذا هو المبلغ المتبقي على الكليان بعد كل الدفعات."
+            ? "هذا هو المبلغ المتبقي على العميل بعد كل الدفعات."
             : kind === "credit"
-              ? "الرصيد لصالح الكليان، أي أنه دفع أكثر مما أخذ."
+              ? "الرصيد لصالح العميل، أي أنه دفع أكثر مما أخذ."
               : "لا يوجد رصيد متبقٍ على هذا الحساب."}
         </p>
       </div>
@@ -73,7 +73,7 @@ export function BalancePanel({
         </div>
         <div className="paid-progress">
           <div className="paid-progress__head">
-            <span>نسبة التسديد من مجموع الكريدي</span>
+            <span>نسبة التسديد من إجمالي الديون</span>
             <strong>{ratio}%</strong>
           </div>
           <div

@@ -16,7 +16,7 @@ export function PageHeader({
   title,
   subtitle,
   action,
-  eyebrow = "دفتر الكريدي",
+  eyebrow = "دفتر الديون",
 }: PageHeaderProps) {
   return (
     <View style={styles.header}>

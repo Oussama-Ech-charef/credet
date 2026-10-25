@@ -25,7 +25,12 @@ import {
 } from "@/hooks/use-entry-mutations";
 import { apiErrorMessage } from "@/lib/api";
 import { shareDownloadedFile } from "@/lib/files";
-import { formatAmount, formatSignedAmount, statementMessage } from "@/lib/format";
+import {
+  formatAmount,
+  formatMovementCount,
+  formatSignedAmount,
+  statementMessage,
+} from "@/lib/format";
 import { hapticDelete } from "@/lib/haptics";
 import { callPhone, openWhatsAppChat, shareViaWhatsApp } from "@/lib/links";
 import type { Entry, EntryMutationResponse } from "@/lib/types";
@@ -56,7 +61,7 @@ export default function ClientLedgerScreen() {
   const detail = detailQuery.data;
   const client = detail?.client;
   const currency = settingsQuery.data?.currency ?? "DH";
-  const shopName = settingsQuery.data?.shop_name ?? "دفتر الكريدي";
+  const shopName = settingsQuery.data?.shop_name ?? "دفتر الديون";
   const entries = useMemo(
     () =>
       [...(entriesQuery.data ?? [])].sort((left, right) => {
@@ -97,7 +102,7 @@ export default function ClientLedgerScreen() {
     showToast(
       formMode === "edit"
         ? "تم تحديث الحركة."
-        : `تم تسجيل ${result.operation_type === "DEBT" ? "كريدي" : "دفعة"} بقيمة ${formatAmount(
+        : `تم تسجيل ${result.operation_type === "DEBT" ? "دين" : "دفعة"} بقيمة ${formatAmount(
             result.amount,
             currency,
           )}.`,
@@ -107,7 +112,7 @@ export default function ClientLedgerScreen() {
 
   const handleCall = async () => {
     if (!client?.phone) {
-      showToast("لا يوجد رقم هاتف مسجل لهذا الكليان.", "error");
+      showToast("لا يوجد رقم هاتف مسجل لهذا العميل.", "error");
       return;
     }
 
@@ -245,14 +250,14 @@ export default function ClientLedgerScreen() {
       await deleteClientMutation.mutateAsync(clientId);
       await hapticDelete();
       setClientDeleteOpen(false);
-      showToast("تم حذف الكليان من القائمة.", "success");
+      showToast("تم حذف العميل من القائمة.", "success");
       router.replace("/clients");
     } catch (error) {
       const message = apiErrorMessage(error);
       setClientDeleteError(
         /[\u0600-\u06FF]/.test(message)
           ? message
-          : "تعذر حذف الكليان. تحقق من الاتصال وأعد المحاولة.",
+          : "تعذر حذف العميل. تحقق من الاتصال وأعد المحاولة.",
       );
     }
   };
@@ -261,7 +266,7 @@ export default function ClientLedgerScreen() {
     <View style={styles.header}>
       <View style={styles.topBar}>
         <IconButton
-          accessibilityLabel="رجوع إلى قائمة الكليان"
+          accessibilityLabel="رجوع إلى قائمة العملاء"
           icon="arrow-forward"
           onPress={goBack}
         />
@@ -283,7 +288,7 @@ export default function ClientLedgerScreen() {
           />
           <IconButton
             accessibilityLabel={
-              client ? `تعديل بيانات ${client.name}` : "تعديل بيانات الكليان"
+              client ? `تعديل بيانات ${client.name}` : "تعديل بيانات العميل"
             }
             disabled={!client}
             icon="pencil-outline"
@@ -291,7 +296,7 @@ export default function ClientLedgerScreen() {
             size={40}
           />
           <IconButton
-            accessibilityLabel={client ? `حذف ${client.name}` : "حذف الكليان"}
+            accessibilityLabel={client ? `حذف ${client.name}` : "حذف العميل"}
             backgroundColor={colors.debtSoft}
             borderColor="rgba(239, 68, 68, 0.28)"
             color={colors.debtText}
@@ -354,7 +359,7 @@ export default function ClientLedgerScreen() {
       <Screen edges={["top", "left", "right", "bottom"]}>
         {header}
         <ErrorState
-          message="معرّف الكليان في الرابط غير صالح. ارجع إلى قائمة الكليان واختر حسابًا."
+          message="معرّف العميل في الرابط غير صالح. ارجع إلى قائمة العملاء واختر حسابًا."
           onRetry={goBack}
           title="رابط غير صالح"
         />
@@ -367,7 +372,7 @@ export default function ClientLedgerScreen() {
       <Button
         fullWidth
         icon="add"
-        label="تسجيل كريدي"
+        label="تسجيل دين"
         onPress={() => openForm("debt")}
         style={styles.footerButton}
         variant="danger"
@@ -402,7 +407,7 @@ export default function ClientLedgerScreen() {
         <ErrorState
           message={apiErrorMessage(detailQuery.error)}
           onRetry={refresh}
-          title="تعذر تحميل حساب الكليان"
+          title="تعذر تحميل حساب العميل"
         />
       ) : detail ? (
         <>
@@ -428,7 +433,7 @@ export default function ClientLedgerScreen() {
               <Card>
                 <View style={styles.notesTitleRow}>
                   <Ionicons color={colors.warningText} name="document-text-outline" size={17} />
-                  <AppText variant="bodyStrong">ملاحظات الكليان</AppText>
+                  <AppText variant="bodyStrong">ملاحظات العميل</AppText>
                 </View>
                 <AppText style={styles.notes} tone="muted" variant="body">
                   {client.notes}
@@ -439,7 +444,7 @@ export default function ClientLedgerScreen() {
 
           <View style={styles.section}>
             <SectionHeading
-              meta={entriesQuery.isPending ? "جارٍ التحميل" : `${entries.length} حركة`}
+              meta={entriesQuery.isPending ? "جارٍ التحميل" : formatMovementCount(entries.length)}
               title="سجل الحركات"
             />
 
@@ -454,8 +459,8 @@ export default function ClientLedgerScreen() {
               />
             ) : entries.length === 0 ? (
               <EmptyState
-                actionLabel="تسجيل أول كريدي"
-                description="لا توجد حركات على هذا الحساب بعد. سجّل أول كريدي أو دفعة من الأزرار بالأسفل."
+                actionLabel="تسجيل أول دين"
+                description="لا توجد حركات على هذا الحساب بعد. سجّل أول دين أو دفعة من الأزرار بالأسفل."
                 icon="receipt-outline"
                 onAction={() => openForm("debt")}
                 title="السجل فارغ"
@@ -514,13 +519,13 @@ export default function ClientLedgerScreen() {
           />
 
           <ConfirmDialog
-            confirmLabel="حذف الكليان"
-            description={`سيتم أرشفة "${detail.client.name}" وإخفاؤه من قائمة الكليان مع الاحتفاظ بسجل حركاته. لا يمكن التراجع عن هذا الإجراء.`}
+            confirmLabel="حذف العميل"
+            description={`سيتم أرشفة "${detail.client.name}" وإخفاؤه من قائمة العملاء مع الاحتفاظ بسجل حركاته. لا يمكن التراجع عن هذا الإجراء.`}
             error={clientDeleteError}
             loading={deleteClientMutation.isPending}
             onCancel={closeClientDelete}
             onConfirm={() => void handleDeleteClient()}
-            title="حذف الكليان؟"
+            title="حذف العميل؟"
             visible={clientDeleteOpen}
           />
         </>

@@ -39,7 +39,7 @@ export default function EditClientScreen() {
     await updateMutation.mutateAsync({ id: clientId, input: values });
 
     await hapticSuccess();
-    showToast("تم تحديث بيانات الكليان بنجاح.", "success");
+    showToast("تم تحديث بيانات العميل بنجاح.", "success");
     goBack();
   };
 
@@ -53,13 +53,13 @@ export default function EditClientScreen() {
             onPress={goBack}
           />
         }
-        subtitle="عدّل بيانات الكليان وستظهر التغييرات مباشرة في كشف الحساب."
-        title="تعديل الكليان"
+        subtitle="عدّل بيانات العميل وستظهر التغييرات مباشرة في كشف الحساب."
+        title="تعديل العميل"
       />
 
       {!validId ? (
         <ErrorState
-          message="معرّف الكليان في الرابط غير صالح. ارجع إلى قائمة الكليان واختر حسابًا."
+          message="معرّف العميل في الرابط غير صالح. ارجع إلى قائمة العملاء واختر حسابًا."
           onRetry={goBack}
           title="رابط غير صالح"
         />
@@ -77,7 +77,7 @@ export default function EditClientScreen() {
         <ErrorState
           message={apiErrorMessage(detailQuery.error)}
           onRetry={() => void detailQuery.refetch()}
-          title="تعذر تحميل بيانات الكليان"
+          title="تعذر تحميل بيانات العميل"
         />
       ) : detail ? (
         <Card>

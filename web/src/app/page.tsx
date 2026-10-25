@@ -78,8 +78,8 @@ export default function DashboardPage() {
   return (
     <div className="page">
       <PageHeader
-        description="نظرة سريعة على ما يدور في الدفتر: المستحقات، الحركة اليومية، والكليان الذين يحتاجون متابعة."
-        title="دفتر اليوم"
+        description="نظرة سريعة على ما يدور في السجل: المستحقات، الحركة اليومية، والعملاء الذين يحتاجون إلى متابعة."
+        title="ملخص اليوم"
       />
 
       {loading ? (
@@ -157,8 +157,8 @@ export default function DashboardPage() {
                 <Icon name="users" size={20} />
               </span>
               <span className="action-tile__copy">
-                <strong>إضافة كليان جديد</strong>
-                <span>افتح حسابًا جديدًا في الدفتر</span>
+                <strong>إضافة عميل جديد</strong>
+                <span>افتح حسابًا جديدًا في السجل</span>
               </span>
             </button>
             <button
@@ -170,8 +170,8 @@ export default function DashboardPage() {
                 <Icon name="plus" size={20} />
               </span>
               <span className="action-tile__copy">
-                <strong>تسجيل كريدي سريع</strong>
-                <span>اختر الكليان وأدخل المبلغ فورًا</span>
+                <strong>تسجيل دين سريع</strong>
+                <span>اختر العميل وأدخل المبلغ فورًا</span>
               </span>
             </button>
           </div>

@@ -31,7 +31,7 @@ function saveErrorMessage(error: unknown): string {
 
   return /[\u0600-\u06FF]/.test(message)
     ? message
-    : "تعذر حفظ بيانات الكليان. تحقق من الاتصال وأعد المحاولة.";
+    : "تعذر حفظ بيانات العميل. تحقق من الاتصال وأعد المحاولة.";
 }
 
 export function ClientForm({
@@ -58,7 +58,7 @@ export function ClientForm({
     }
 
     const nextErrors: FormErrors = {
-      name: validateRequiredText(name, "اسم الكليان", 120),
+      name: validateRequiredText(name, "اسم العميل", 120),
       phone: validateOptionalText(phone, "رقم الهاتف", 20),
       address: validateOptionalText(address, "العنوان", 200),
       notes: validateOptionalText(notes, "الملاحظات", 500),
@@ -87,7 +87,7 @@ export function ClientForm({
     <View style={styles.form}>
       <TextField
         error={errors.name}
-        label="اسم الكليان"
+        label="اسم العميل"
         maxLength={120}
         onChangeText={(value) => {
           setName(value);
@@ -137,7 +137,7 @@ export function ClientForm({
           resetError("notes");
         }}
         optional
-        placeholder="مثال: يفضل الدفع نهاية الشهر"
+        placeholder="مثال: يفضل السداد نهاية الشهر"
         value={notes}
       />
 

@@ -10,7 +10,7 @@ import { Logo } from "./ui/logo";
 
 const navItems: Array<{ href: string; label: string; icon: IconName }> = [
   { href: "/", label: "الرئيسية", icon: "home" },
-  { href: "/clients", label: "الكليان", icon: "users" },
+  { href: "/clients", label: "العملاء", icon: "users" },
   { href: "/settings", label: "الإعدادات", icon: "settings" },
 ];
 
@@ -38,7 +38,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <Logo size={40} />
             <span className="brand__copy">
               <strong className="brand__name">Credet</strong>
-              <span className="brand__tag">دفتر الكريدي</span>
+              <span className="brand__tag">دفتر الديون</span>
             </span>
           </Link>
 
@@ -67,7 +67,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               <Icon name="shield" size={18} />
             </span>
             <div>
-              <strong>دفتر محلي</strong>
+              <strong>سجل محلي</strong>
               <span>البيانات محفوظة في قاعدة بيانات جهازك</span>
             </div>
           </div>
@@ -81,7 +81,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <Logo size={32} />
             <span className="brand__copy">
               <strong className="brand__name">Credet</strong>
-              <span className="brand__tag">دفتر الكريدي</span>
+              <span className="brand__tag">دفتر الديون</span>
             </span>
           </Link>
           <Link

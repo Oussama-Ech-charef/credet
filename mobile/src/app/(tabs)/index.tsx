@@ -20,7 +20,7 @@ import { Skeleton, SkeletonCard } from "@/components/ui/skeleton";
 import { colors, radius, spacing } from "@/constants/theme";
 import { useClients, useShopSettings, useStats } from "@/hooks/use-credet-queries";
 import { apiErrorMessage } from "@/lib/api";
-import { formatAmount, formatCount, formatToday } from "@/lib/format";
+import { formatAmount, formatClientCount, formatCount, formatToday } from "@/lib/format";
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -29,7 +29,7 @@ export default function HomeScreen() {
   const settingsQuery = useShopSettings();
 
   const currency = settingsQuery.data?.currency ?? "DH";
-  const shopName = settingsQuery.data?.shop_name ?? "دفتر الكريدي";
+  const shopName = settingsQuery.data?.shop_name ?? "دفتر الديون";
   const stats = statsQuery.data;
   const error = statsQuery.isError ? apiErrorMessage(statsQuery.error) : "";
   const refreshing = statsQuery.isRefetching || clientsQuery.isRefetching;
@@ -98,7 +98,7 @@ export default function HomeScreen() {
                 </AppText>
               </View>
               <Badge dot tone={totalReceivable > 0 ? "debt" : "payment"}>
-                {totalReceivable > 0 ? "مستحق" : "خالص"}
+                {totalReceivable > 0 ? "مستحق" : "مسدد"}
               </Badge>
             </View>
             <AppText
@@ -110,17 +110,17 @@ export default function HomeScreen() {
               {formatAmount(totalReceivable, currency)}
             </AppText>
             <AppText style={styles.heroHint} tone="muted" variant="caption">
-              مجموع ما لم يُدفع بعد لدى كل الكليان.
+              إجمالي المبالغ غير المسددة لدى جميع العملاء.
             </AppText>
           </Card>
 
           <View style={styles.metrics}>
             <MetricCard
-              hint="عليهم رصيد متبقٍ"
+              hint="عليهم ديون مستحقة"
               icon="people-outline"
-              label="المديونون النشطون"
+              label="العملاء المدينون"
               tone="action"
-              value={`${formatCount(stats?.total_debtors ?? 0)} كليان`}
+              value={formatClientCount(stats?.total_debtors ?? 0)}
             />
             <MetricCard
               hint="دفعات مسجلة اليوم"
@@ -159,7 +159,7 @@ export default function HomeScreen() {
                   variant="ghost"
                 />
               }
-              meta={`${recentActivity.length} حركة حديثة`}
+              meta={`${formatCount(recentActivity.length)} من الحركات الأخيرة`}
               title="آخر الحركات"
             />
             {recentActivity.length > 0 ? (
@@ -177,7 +177,7 @@ export default function HomeScreen() {
             ) : (
               <EmptyState
                 actionLabel="تسجيل أول حركة"
-                description="ابدأ بتسجيل أول كريدي أو دفعة، وستظهر الحركات هنا مباشرة."
+                description="ابدأ بتسجيل أول دين أو دفعة، وستظهر الحركات هنا مباشرة."
                 icon="receipt-outline"
                 onAction={() =>
                   router.navigate({

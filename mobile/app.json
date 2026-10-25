@@ -15,7 +15,7 @@
         "NSAppTransportSecurity": {
           "NSAllowsArbitraryLoads": true
         },
-        "NSLocalNetworkUsageDescription": "يستخدم Credet الشبكة المحلية للاتصال بخادم دفتر الكريدي.",
+        "NSLocalNetworkUsageDescription": "يستخدم Credet الشبكة المحلية للاتصال بخادم دفتر الديون.",
         "LSApplicationQueriesSchemes": [
           "whatsapp"
         ]

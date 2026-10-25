@@ -1,5 +1,5 @@
 import { StatCard } from "@/components/ui/stat-card";
-import { formatAmount, formatCount } from "@/lib/format";
+import { formatAmount, formatClientCount } from "@/lib/format";
 import type { StatsOverview } from "@/lib/types";
 
 interface MetricBandProps {
@@ -13,7 +13,7 @@ export function MetricBand({ stats, currency }: MetricBandProps) {
       <div className="stat-band__head">
         <div>
           <h2 className="stat-band__title" id="ledger-summary-title">
-            ملخص الدفتر
+            ملخص السجل
           </h2>
           <p className="stat-band__note">
             الأرقام محدثة من قاعدة البيانات، وكل مبلغ مرتبط بحركة مسجلة.
@@ -30,13 +30,13 @@ export function MetricBand({ stats, currency }: MetricBandProps) {
           value={formatAmount(stats.total_receivable_amount, currency)}
         />
         <StatCard
-          label="عدد الكليان المدينين"
+          label="العملاء المدينون"
           meta="حساب واحد على الأقل عليه رصيد"
           tone="neutral"
-          value={formatCount(stats.total_debtors)}
+          value={formatClientCount(stats.total_debtors)}
         />
         <StatCard
-          label="المداخيل المسترجعة اليوم"
+          label="المبالغ المحصلة اليوم"
           meta="مجموع الدفعات المسجلة اليوم"
           tone="payment"
           value={formatAmount(stats.total_collected_today, currency)}

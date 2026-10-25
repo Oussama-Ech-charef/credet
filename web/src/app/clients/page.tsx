@@ -14,7 +14,7 @@ import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { useSettings } from "@/hooks/use-settings";
 import { useToast } from "@/hooks/use-toast";
 import { api, apiErrorMessage } from "@/lib/api";
-import { clientMatchesSearch } from "@/lib/format";
+import { clientMatchesSearch, formatClientCount } from "@/lib/format";
 import type { Client, ClientStatus } from "@/lib/types";
 
 function statusMatches(client: Client, status: ClientStatus): boolean {
@@ -133,7 +133,7 @@ export default function ClientsPage() {
           <>
             <IconButton
               icon="refresh"
-              label="تحديث قائمة الكليان"
+              label="تحديث قائمة العملاء"
               loading={refreshing}
               onClick={handleRefresh}
               variant="outline"
@@ -143,23 +143,23 @@ export default function ClientsPage() {
               onClick={() => setModalOpen(true)}
               variant="primary"
             >
-              إضافة كليان
+              إضافة عميل
             </Button>
           </>
         }
-        description="ابحث في دفتر الكليان، تابع الأرصدة، وافتح ملف أي حساب بضغطة واحدة."
-        title="الكليان"
+        description="ابحث في سجل العملاء، تابع الأرصدة، وافتح ملف أي حساب بضغطة واحدة."
+        title="العملاء"
       />
 
       <div className="clients-toolbar">
         <SearchField onChange={setSearch} value={search} />
         <SegmentedTabs
-          label="تصفية الكليان حسب الرصيد"
+          label="تصفية العملاء حسب الرصيد"
           onChange={setStatus}
           options={[
             { value: "all", label: "الكل", count: counts.all },
-            { value: "debt", label: "عليهم كريدي", count: counts.debt },
-            { value: "settled", label: "خالصين", count: counts.settled },
+            { value: "debt", label: "عليهم ديون", count: counts.debt },
+            { value: "settled", label: "مسددون", count: counts.settled },
           ]}
           value={status}
         />
@@ -168,13 +168,13 @@ export default function ClientsPage() {
       {!loading && !error ? (
         <p aria-live="polite" className="clients-result-note">
           {hasQuery
-            ? `عرض ${filtered.length} من ${clients.length} كليان`
-            : `${clients.length} كليان في الدفتر`}
+            ? `النتائج: ${formatClientCount(filtered.length)} من ${formatClientCount(clients.length)}`
+            : `${formatClientCount(clients.length)} في السجل`}
         </p>
       ) : null}
 
       {loading ? (
-        <div aria-label="جاري تحميل الكليان" className="skeleton-grid">
+        <div aria-label="جاري تحميل العملاء" className="skeleton-grid">
           {Array.from({ length: 6 }).map((_, index) => (
             <div className="skeleton-card" key={index}>
               <div className="skeleton-stack">
@@ -190,7 +190,7 @@ export default function ClientsPage() {
         <div className="error-state" role="alert">
           <Icon name="alert" size={20} />
           <div>
-            <strong>تعذر تحميل قائمة الكليان.</strong>
+            <strong>تعذر تحميل قائمة العملاء.</strong>
             <p style={{ margin: "4px 0 10px" }}>{error}</p>
             <Button onClick={handleRefresh} size="sm" variant="secondary">
               إعادة المحاولة
@@ -201,12 +201,12 @@ export default function ClientsPage() {
         <EmptyState
           action={
             <Button icon="plus" onClick={() => setModalOpen(true)}>
-              إضافة أول كليان
+              إضافة أول عميل
             </Button>
           }
-          description="ابدأ بإضافة اسم الكليان ورقم هاتفه، ثم سجّل أول كريدي أو دفعة."
+          description="ابدأ بإضافة اسم العميل ورقم هاتفه، ثم سجّل أول دين أو دفعة."
           icon="users"
-          title="الدفتر فارغ"
+          title="السجل فارغ"
         />
       ) : filtered.length === 0 ? (
         <EmptyState

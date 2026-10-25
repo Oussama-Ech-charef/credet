@@ -456,7 +456,7 @@ async function main() {
         name: 'محمد العلمي',
         phone: '+212 6 11 22 33 44',
         address: 'حي المسيرة، الدار البيضاء',
-        notes: 'زبون دائم',
+        notes: 'عميل دائم',
       },
       percent: {
         name: 'Percent % Shop',

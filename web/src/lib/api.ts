@@ -307,7 +307,7 @@ export const api = {
     return firestoreCall(
       () =>
         firestoreService.getClient(
-          numericId(id, "رقم الكليان غير صالح."),
+          numericId(id, "رقم العميل غير صالح."),
         ),
       signal,
     );
@@ -324,7 +324,7 @@ export const api = {
     return firestoreCall(
       () =>
         firestoreService.listEntries(
-          numericId(clientId, "رقم الكليان غير صالح."),
+          numericId(clientId, "رقم العميل غير صالح."),
         ),
       signal,
     );
@@ -336,7 +336,7 @@ export const api = {
   ): Promise<EntryMutationResponse> {
     return firestoreCall(() =>
       firestoreService.createEntry(
-        numericId(clientId, "رقم الكليان غير صالح."),
+        numericId(clientId, "رقم العميل غير صالح."),
         input,
       ),
     );
@@ -378,7 +378,7 @@ export const api = {
   async downloadClientStatement(
     clientId: number | string,
   ): Promise<{ blob: Blob; filename: string }> {
-    const id = numericId(clientId, "رقم الكليان غير صالح.");
+    const id = numericId(clientId, "رقم العميل غير صالح.");
 
     try {
       return await requestFile(
@@ -389,7 +389,7 @@ export const api = {
     } catch (error) {
       if (error instanceof ApiError && error.status === 0) {
         throw new ApiError(
-          "تصدير PDF عبر الويب يتطلب تشغيل السيرفر أو استخدام تطبيق الموبايل",
+          "تصدير PDF عبر الويب يتطلب تشغيل الخادم أو استخدام تطبيق الهاتف المحمول",
           0,
           error,
         );

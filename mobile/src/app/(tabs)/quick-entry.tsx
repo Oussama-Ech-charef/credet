@@ -79,7 +79,7 @@ export default function QuickEntryScreen() {
 
   const handleSave = async () => {
     if (!selectedClient) {
-      showToast("اختر كليانًا أولًا قبل الحفظ.", "error");
+      showToast("اختر عميلًا أولًا قبل الحفظ.", "error");
       return;
     }
 
@@ -94,7 +94,7 @@ export default function QuickEntryScreen() {
     setAmountError(undefined);
     setFormError("");
     const finalDescription =
-      description.trim() || (operationType === "DEBT" ? "كريدي" : "دفعة");
+      description.trim() || (operationType === "DEBT" ? "دين" : "دفعة");
 
     try {
       await createMutation.mutateAsync({
@@ -109,7 +109,7 @@ export default function QuickEntryScreen() {
 
       await hapticSuccess();
       showToast(
-        `تم تسجيل ${operationType === "DEBT" ? "كريدي" : "دفعة"} بقيمة ${formatAmount(
+        `تم تسجيل ${operationType === "DEBT" ? "دين" : "دفعة"} بقيمة ${formatAmount(
           Number(amountResult.value),
           currency,
         )} على ${selectedClient.name}.`,
@@ -124,11 +124,11 @@ export default function QuickEntryScreen() {
   };
 
   const saveLabel = !selectedClient
-    ? "اختر كليانًا أولًا"
+    ? "اختر عميلًا أولًا"
     : !amount.trim()
       ? "أدخل المبلغ أولًا"
       : operationType === "DEBT"
-        ? "تسجيل الكريدي"
+        ? "تسجيل الدين"
         : "تسجيل الدفعة";
 
   const footer = (
@@ -151,7 +151,7 @@ export default function QuickEntryScreen() {
   return (
     <Screen footer={clients.length > 0 && !clientsQuery.isError ? footer : undefined}>
       <PageHeader
-        subtitle="المبلغ أولًا، ثم اختر الكليان. الحفظ فوري."
+        subtitle="المبلغ أولًا، ثم اختر العميل. الحفظ فوري."
         title="تسجيل سريع"
       />
 
@@ -176,9 +176,9 @@ export default function QuickEntryScreen() {
         />
       ) : clients.length === 0 ? (
         <EmptyState
-          description="أضف أول كليان من نسخة الويب، ثم ارجع إلى هنا لتسجيل الحركات بسرعة."
+          description="أضف أول عميل من نسخة الويب، ثم ارجع إلى هنا لتسجيل الحركات بسرعة."
           icon="people-outline"
-          title="لا يوجد كليان بعد"
+          title="لا يوجد عميل بعد"
         />
       ) : (
         <View style={styles.form}>
@@ -191,7 +191,7 @@ export default function QuickEntryScreen() {
             options={[
               {
                 value: "DEBT",
-                label: "كريدي",
+                label: "دين",
                 activeColor: colors.debtText,
                 activeBackground: colors.debtSoft,
               },
@@ -221,7 +221,7 @@ export default function QuickEntryScreen() {
 
           <View style={styles.fieldGroup}>
             <View style={styles.fieldLabelRow}>
-              <AppText variant="label">الكليان</AppText>
+              <AppText variant="label">العميل</AppText>
               <AppText tone="dim" variant="caption">
                 مطلوب
               </AppText>
@@ -229,8 +229,8 @@ export default function QuickEntryScreen() {
             <Pressable
               accessibilityLabel={
                 selectedClient
-                  ? `تغيير الكليان. المحدد ${selectedClient.name}`
-                  : "اختيار كليان"
+                  ? `تغيير العميل. المحدد ${selectedClient.name}`
+                  : "اختيار عميل"
               }
               accessibilityRole="button"
               onPress={() => setPickerOpen(true)}
@@ -249,7 +249,7 @@ export default function QuickEntryScreen() {
               )}
               <View style={styles.clientCopy}>
                 <AppText numberOfLines={1} variant="bodyStrong">
-                  {selectedClient?.name ?? "اختر الكليان"}
+                  {selectedClient?.name ?? "اختر العميل"}
                 </AppText>
                 <AppText numberOfLines={1} tone="dim" variant="caption">
                   {selectedClient

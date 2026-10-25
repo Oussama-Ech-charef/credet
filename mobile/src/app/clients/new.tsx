@@ -28,7 +28,7 @@ export default function NewClientScreen() {
     const client = await createMutation.mutateAsync(values);
 
     await hapticSuccess();
-    showToast(`تمت إضافة الكليان "${client.name}" بنجاح.`, "success");
+    showToast(`تمت إضافة العميل "${client.name}" بنجاح.`, "success");
     goBack();
   };
 
@@ -37,20 +37,20 @@ export default function NewClientScreen() {
       <PageHeader
         action={
           <IconButton
-            accessibilityLabel="رجوع إلى قائمة الكليان"
+            accessibilityLabel="رجوع إلى قائمة العملاء"
             icon="arrow-forward"
             onPress={goBack}
           />
         }
-        subtitle="أدخل بيانات الكليان مرة واحدة، ثم ابدأ تسجيل الحركات."
-        title="كليان جديد"
+        subtitle="أدخل بيانات العميل مرة واحدة، ثم ابدأ تسجيل الحركات."
+        title="عميل جديد"
       />
 
       <Card>
         <ClientForm
           loading={createMutation.isPending}
           onSubmit={handleSubmit}
-          submitLabel="إضافة كليان"
+          submitLabel="إضافة عميل"
         />
       </Card>
     </Screen>

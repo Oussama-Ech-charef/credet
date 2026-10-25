@@ -6,7 +6,7 @@ import { AppText } from "@/components/ui/app-text";
 import { Badge } from "@/components/ui/badge";
 import { IconButton } from "@/components/ui/button";
 import { colors, radius, spacing } from "@/constants/theme";
-import { formatAmount, relativeDayLabel } from "@/lib/format";
+import { formatAmount, formatMovementCount, relativeDayLabel } from "@/lib/format";
 import type { Client } from "@/lib/types";
 
 interface ClientCardProps {
@@ -36,7 +36,7 @@ function BalanceBadge({ client, currency }: { client: Client; currency: string }
 
   return (
     <Badge dot tone="payment">
-      خالص
+      مسدد
     </Badge>
   );
 }
@@ -90,7 +90,7 @@ export function ClientCard({
               : "لا توجد حركات"}
           </AppText>
           <AppText tone="dim" variant="caption">
-            · {client.entries_count} حركة
+            · {formatMovementCount(client.entries_count)}
           </AppText>
         </View>
         <View style={styles.actions}>

@@ -148,7 +148,7 @@ export class FirestoreService {
     const snap = await getDoc(docRef);
 
     if (!snap.exists()) {
-      throw new Error("لم يتم العثور على الكليان المطلوب.");
+      throw new Error("لم يتم العثور على العميل المطلوب.");
     }
 
     const data = snap.data();
@@ -202,7 +202,7 @@ export class FirestoreService {
     const docRef = doc(this.db, "clients", String(id));
     const snap = await getDoc(docRef);
     if (!snap.exists()) {
-      throw new Error("الكليان غير موجود.");
+      throw new Error("العميل غير موجود.");
     }
 
     const updates: Record<string, unknown> = {
@@ -474,7 +474,7 @@ export class FirestoreService {
       .forEach((entry) => {
         recentActivity.push({
           ...entry,
-          client_name: clientsMap.get(entry.client_id) || "زبون",
+          client_name: clientsMap.get(entry.client_id) || "عميل",
         });
       });
 
@@ -497,7 +497,7 @@ export class FirestoreService {
       name: "محمد العلمي",
       phone: "0612345678",
       address: "حي المسيرة، الدار البيضاء",
-      notes: "زبون دائم",
+      notes: "عميل دائم",
     });
 
     await this.createEntry(client1.id, {

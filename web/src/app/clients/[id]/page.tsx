@@ -21,6 +21,7 @@ import { api, apiErrorMessage, saveBlob } from "@/lib/api";
 import {
   formatAmount,
   formatDate,
+  formatMovementCount,
   normalizePhoneForTel,
   normalizePhoneForWhatsApp,
 } from "@/lib/format";
@@ -65,7 +66,7 @@ export default function ClientLedgerPage() {
   const load = useCallback(
     async (signal?: AbortSignal) => {
       if (!Number.isSafeInteger(clientId) || clientId <= 0) {
-        setError("رقم الكليان غير صالح.");
+        setError("رقم العميل غير صالح.");
         setLoading(false);
         return;
       }
@@ -285,21 +286,21 @@ export default function ClientLedgerPage() {
       <div className="page">
         <Link className="back-link" href="/clients">
           <Icon name="chevron-right" size={16} />
-          <span>الكليان</span>
+          <span>العملاء</span>
         </Link>
         <div className="error-state" role="alert">
           <Icon name="alert" size={20} />
           <div>
-            <strong>تعذر فتح ملف الكليان.</strong>
+            <strong>تعذر فتح ملف العميل.</strong>
             <p style={{ margin: "4px 0 10px" }}>
-              {error || "لم يتم العثور على هذا الكليان."}
+              {error || "لم يتم العثور على هذا العميل."}
             </p>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
               <Button onClick={() => void load()} size="sm" variant="secondary">
                 إعادة المحاولة
               </Button>
               <Link className="btn btn--ghost btn--sm" href="/clients">
-                العودة إلى الكليان
+                العودة إلى العملاء
               </Link>
             </div>
           </div>
@@ -312,7 +313,7 @@ export default function ClientLedgerPage() {
     <div className="page">
       <Link className="back-link" href="/clients">
         <Icon name="chevron-right" size={16} />
-        <span>الكليان</span>
+        <span>العملاء</span>
       </Link>
 
       <header className="ledger-header">
@@ -367,7 +368,7 @@ export default function ClientLedgerPage() {
             onClick={() => setEntryModal({ mode: "debt" })}
             variant="danger"
           >
-            تسجيل كريدي
+            تسجيل دين
           </Button>
           <Button
             icon="minus"
@@ -398,7 +399,7 @@ export default function ClientLedgerPage() {
         <div>
           <h2 className="ledger-toolbar__title">حركة الحساب</h2>
           <span className="ledger-toolbar__meta">
-            {entries.length} حركة مسجلة، مرتبة من الأحدث إلى الأقدم
+            {formatMovementCount(entries.length)} · الترتيب من الأحدث إلى الأقدم
           </span>
         </div>
       </div>
@@ -412,7 +413,7 @@ export default function ClientLedgerPage() {
                 onClick={() => setEntryModal({ mode: "debt" })}
                 variant="danger"
               >
-                تسجيل أول كريدي
+                تسجيل أول دين
               </Button>
               <Button
                 icon="minus"
@@ -423,7 +424,7 @@ export default function ClientLedgerPage() {
               </Button>
             </div>
           }
-          description="ابدأ بتسجيل أول كريدي أو دفعة. سيظهر كل سطر هنا مع تاريخه وتفاصيله."
+          description="ابدأ بتسجيل أول دين أو دفعة. سيظهر كل سطر هنا مع تاريخه وتفاصيله."
           icon="receipt"
           title="لا توجد حركات بعد"
         />

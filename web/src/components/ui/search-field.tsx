@@ -14,7 +14,7 @@ export function SearchField({
   value,
   onChange,
   placeholder = "ابحث بالاسم، الهاتف، أو العنوان",
-  label = "بحث عن كليان",
+  label = "بحث عن عميل",
   autoFocus = false,
 }: SearchFieldProps) {
   return (

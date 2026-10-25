@@ -104,12 +104,12 @@ export function EntryFormModal({
   const title = isEditing
     ? "تعديل الحركة"
     : isDebt
-      ? "تسجيل كريدي"
+      ? "تسجيل دين"
       : "تسجيل دفعة";
   const submitLabel = isEditing
     ? "حفظ التعديل"
     : isDebt
-      ? "تسجيل الكريدي"
+      ? "تسجيل الدين"
       : "تسجيل الدفعة";
 
   function validate(): boolean {
@@ -219,7 +219,7 @@ export function EntryFormModal({
             type="button"
           >
             <Icon name="plus" size={15} />
-            كريدي
+            دين
           </button>
           <button
             aria-pressed={!isDebt}

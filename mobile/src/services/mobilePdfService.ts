@@ -31,8 +31,8 @@ export function generateClientStatementHtml(
 ): string {
   const balance = data.current_balance;
   const netClass = balance > 0 ? "net-debt" : balance < 0 ? "net-credit" : "net-settled";
-  const netLabel = balance > 0 ? "الباقي الواجب أداؤه" : balance < 0 ? "رصيد لصالح الزبون" : "الحساب خالص";
-  const netHint = balance > 0 ? "مبلغ مستحق على الزبون، يرجى تسويته." : balance < 0 ? "رصيد إضافي لصالح الزبون." : "لا يوجد مبلغ مستحق على الزبون.";
+  const netLabel = balance > 0 ? "الرصيد الصافي المستحق" : balance < 0 ? "رصيد لصالح العميل" : "الحساب مسدد";
+  const netHint = balance > 0 ? "مبلغ مستحق على العميل، يرجى سداده." : balance < 0 ? "رصيد إضافي لصالح العميل." : "لا يوجد مبلغ مستحق على العميل.";
 
   const now = new Date();
   const dateFormatted = `${String(now.getDate()).padStart(2, "0")}/${String(now.getMonth() + 1).padStart(2, "0")}/${now.getFullYear()} - ${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
@@ -51,7 +51,7 @@ export function generateClientStatementHtml(
             <td style="padding: 10px; text-align: center; font-family: monospace;">${formatDate(entry.operation_date)}</td>
             <td style="padding: 10px; text-align: center;">
               <span style="background: ${badgeColor}; color: ${badgeTextColor}; padding: 3px 8px; border-radius: 999px; font-size: 11px; font-weight: 600;">
-                ${isDebt ? "كريدي" : "دفعة"}
+                ${isDebt ? "دين" : "دفعة"}
               </span>
             </td>
             <td style="padding: 10px; text-align: right;">
@@ -180,14 +180,14 @@ export function generateClientStatementHtml(
           <div class="shop-sub">سجل الديون والحسابات · الهاتف: ${escapeHtml(shop.shop_phone || "—")}</div>
         </div>
         <div class="doc-meta">
-          <div style="font-weight: 700; font-size: 14px;">كشف حساب زبون</div>
+          <div style="font-weight: 700; font-size: 14px;">كشف حساب عميل</div>
           <div style="font-size: 11px; color: #64748B;">تاريخ الإصدار: ${dateFormatted}</div>
         </div>
       </div>
 
       <div class="client-box">
         <div>
-          <div style="font-size: 11px; color: #64748B;">بيانات الزبون</div>
+          <div style="font-size: 11px; color: #64748B;">بيانات العميل</div>
           <div style="font-size: 16px; font-weight: 700; color: #0F172A; margin: 2px 0;">${escapeHtml(data.client.name)}</div>
           <div style="font-size: 12px; color: #475569;">
             الهاتف: ${escapeHtml(data.client.phone || "—")} | العنوان: ${escapeHtml(data.client.address || "—")}
@@ -231,7 +231,7 @@ export function generateClientStatementHtml(
       </table>
 
       <div class="footer">
-        <div>شكراً لتعاملكم مع ${escapeHtml(shop.shop_name)}</div>
+        <div>شكرًا لتعاملكم مع ${escapeHtml(shop.shop_name)}</div>
         <div>تم الإنشاء بواسطة Credet</div>
       </div>
     </body>

@@ -17,11 +17,11 @@ const cairo = localFont({
 
 export const metadata: Metadata = {
   title: {
-    default: "Credet — دفتر الكريدي",
+    default: "Credet — دفتر الديون",
     template: "%s · Credet",
   },
   description:
-    "دفتر كريدي عربي سريع وواضح: الكليان، الديون، الدفعات، وكشوف الحساب.",
+    "دفتر ديون عربي سريع وواضح: العملاء، الديون، الدفعات، وكشوف الحساب.",
   applicationName: "Credet",
 };
 

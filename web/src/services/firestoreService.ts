@@ -287,7 +287,7 @@ export class FirestoreService {
     const data = snap.data();
 
     if (!snap.exists() || !data) {
-      throw new Error("لم يتم العثور على الكليان المطلوب.");
+      throw new Error("لم يتم العثور على العميل المطلوب.");
     }
 
     return {
@@ -297,7 +297,7 @@ export class FirestoreService {
   }
 
   async createClient(input: ClientInput): Promise<Client> {
-    const name = requireText(input.name, "اسم الكليان مطلوب.");
+    const name = requireText(input.name, "اسم العميل مطلوب.");
     const id = await this.getNextId("client_id");
     const now = new Date().toISOString();
 
@@ -326,7 +326,7 @@ export class FirestoreService {
     const snap = await getDoc(docRef);
 
     if (!snap.exists() || !snap.data()) {
-      throw new Error("الكليان غير موجود.");
+      throw new Error("العميل غير موجود.");
     }
 
     const updates: Record<string, unknown> = {
@@ -334,7 +334,7 @@ export class FirestoreService {
     };
 
     if (input.name !== undefined) {
-      updates.name = requireText(input.name, "اسم الكليان مطلوب.");
+      updates.name = requireText(input.name, "اسم العميل مطلوب.");
     }
     if (input.phone !== undefined) {
       updates.phone = toNullableText(input.phone);
@@ -352,7 +352,7 @@ export class FirestoreService {
     const updatedData = updatedSnap.data();
 
     if (!updatedSnap.exists() || !updatedData) {
-      throw new Error("تعذر تحميل بيانات الكليان بعد التحديث.");
+      throw new Error("تعذر تحميل بيانات العميل بعد التحديث.");
     }
 
     return mapClient(updatedSnap.id, updatedData);
@@ -363,7 +363,7 @@ export class FirestoreService {
     const snap = await getDoc(docRef);
 
     if (!snap.exists()) {
-      throw new Error("لم يتم العثور على الكليان المطلوب.");
+      throw new Error("لم يتم العثور على العميل المطلوب.");
     }
 
     await updateDoc(docRef, {
@@ -429,7 +429,7 @@ export class FirestoreService {
       const clientData = clientSnap.data();
 
       if (!clientSnap.exists() || !clientData) {
-        throw new Error("لم يتم العثور على الكليان المطلوب.");
+        throw new Error("لم يتم العثور على العميل المطلوب.");
       }
 
       const totals = clientTotalsFromData(clientData);
@@ -493,7 +493,7 @@ export class FirestoreService {
       const clientData = clientSnap.data();
 
       if (!clientSnap.exists() || !clientData) {
-        throw new Error("لم يتم العثور على الكليان المطلوب.");
+        throw new Error("لم يتم العثور على العميل المطلوب.");
       }
 
       const oldOperationType = toOperationType(currentEntry.operation_type);
@@ -640,7 +640,7 @@ export class FirestoreService {
       const clientData = clientSnap.data();
 
       if (!clientSnap.exists() || !clientData) {
-        throw new Error("لم يتم العثور على الكليان المطلوب.");
+        throw new Error("لم يتم العثور على العميل المطلوب.");
       }
 
       const operationType = toOperationType(currentEntry.operation_type);
@@ -752,7 +752,7 @@ export class FirestoreService {
       .slice(0, 10)
       .map((entry) => ({
         ...entry,
-        client_name: clientsById.get(entry.client_id) || "زبون",
+        client_name: clientsById.get(entry.client_id) || "عميل",
       }));
 
     return {

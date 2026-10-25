@@ -9,7 +9,7 @@ export async function callPhone(phone: string): Promise<void> {
   const number = normalizePhoneForTel(phone);
 
   if (!number) {
-    throw new Error("لا يوجد رقم هاتف صالح لهذا الكليان.");
+    throw new Error("لا يوجد رقم هاتف صالح لهذا العميل.");
   }
 
   await Linking.openURL(`tel:${number}`);

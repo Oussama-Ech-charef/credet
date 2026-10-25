@@ -78,7 +78,7 @@ Use `npm run lint` rather than `npx expo lint`; the local Expo CLI version check
 | Route | Screen |
 |---|---|
 | `/` | **الرئيسية**: total receivables, active debtors, today's collections, quick actions, recent activity, and top balances. |
-| `/clients` | **الكليان**: debounced name/phone search, `الكل` / `عليهم كريدي` / `خالصين` filters, balance badges, call, and WhatsApp actions. |
+| `/clients` | **العملاء**: debounced name/phone search, `الكل` / `عليهم ديون` / `مسددون` filters, balance badges, call, and WhatsApp actions. |
 | `/quick-entry` | **تسجيل سريع**: focused decimal amount field, client picker, optional description, and immediate save. |
 | `/clients/[id]` | Client ledger: balance banner, statement sharing, transaction timeline, debt/payment entry, edit/delete confirmation, WhatsApp, and phone call. |
 | `/settings` | **الإعدادات**: shop profile, server URL test/save/reset, database backup, and JSON export. |

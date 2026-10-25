@@ -31,7 +31,7 @@ export function BackupPanel() {
     try {
       const file = await api.exportJson();
       saveBlob(file.blob, file.filename);
-      toast("تم تصدير بيانات الكليان والحركات بصيغة JSON.");
+      toast("تم تصدير بيانات العملاء والحركات بصيغة JSON.");
     } catch (error) {
       toast(apiErrorMessage(error), "error");
     } finally {
@@ -46,7 +46,7 @@ export function BackupPanel() {
           النسخ الاحتياطي
         </h2>
         <p className="settings-card__description">
-          احتفظ بنسخة من الدفتر في مكان آمن. التنزيل يقرأ قاعدة البيانات الحالية
+          احتفظ بنسخة من السجل في مكان آمن. التنزيل يقرأ قاعدة البيانات الحالية
           دون إيقاف العمل.
         </p>
       </header>
@@ -59,7 +59,7 @@ export function BackupPanel() {
           <div className="backup-row__copy">
             <strong>نسخة Firestore كاملة (.json)</strong>
             <span>
-              تشمل الكليان والحركات والإعدادات. مناسبة للحفظ طويل الأمد أو النقل
+              تشمل العملاء والحركات والإعدادات. مناسبة للحفظ طويل الأمد أو النقل
               إلى جهاز آخر.
             </span>
           </div>
@@ -86,7 +86,7 @@ export function BackupPanel() {
           <div className="backup-row__copy">
             <strong>تصدير JSON</strong>
             <span>
-              ملف نصي يضم الكليان وكل الحركات، مناسب للقراءة أو المعالجة خارج
+              ملف نصي يضم العملاء وكل الحركات، مناسب للقراءة أو المعالجة خارج
               التطبيق.
             </span>
           </div>

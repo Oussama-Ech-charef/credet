@@ -15,7 +15,7 @@ const sampleClients = [
     name: 'محمد العلمي',
     phone: '0612345678',
     address: 'حي المسيرة، الدار البيضاء',
-    notes: 'زبون دائم',
+    notes: 'عميل دائم',
     entries: [
       {
         operation_type: 'DEBT',
@@ -74,7 +74,7 @@ const sampleClients = [
         amount: 200,
         description: 'دفعة مقدمة',
         operation_date: dateDaysAgo(3),
-        note: 'الباقي رصيد لصالح الزبون',
+        note: 'الباقي رصيد لصالح العميل',
       },
     ],
   },
@@ -82,7 +82,7 @@ const sampleClients = [
     name: 'سعاد المرابط',
     phone: '0645678901',
     address: 'حي السلام، طنجة',
-    notes: 'زبونة جديدة',
+    notes: 'عميلة جديدة',
     entries: [],
   },
 ];

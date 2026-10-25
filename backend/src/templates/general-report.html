@@ -156,10 +156,10 @@
   <section class="statement-heading">
     <div>
       <div class="eyebrow">تقرير الديون العام</div>
-      <h1>ملخص أرصدة الكليان</h1>
+      <h1>ملخص أرصدة العملاء</h1>
       <p class="period">{{FILTER_LABEL}}</p>
     </div>
-    <div class="period-chip">عدد الكليان: <strong>{{CLIENT_COUNT}}</strong></div>
+    <div class="period-chip">عدد العملاء: <strong>{{CLIENT_COUNT}}</strong></div>
   </section>
 
   <section class="summary-grid report-summary-grid">
@@ -172,7 +172,7 @@
           <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
         </svg>
       </div>
-      <div class="card-label">عدد الكليان</div>
+      <div class="card-label">عدد العملاء</div>
       <div class="card-value" dir="ltr">{{CLIENT_COUNT}}</div>
       <div class="card-hint">منهم {{DEBTOR_COUNT}} مدين و{{SETTLED_COUNT}} غير مدين</div>
     </article>
@@ -188,7 +188,7 @@
       </div>
       <div class="card-label">مجموع ما أخذ</div>
       <div class="card-value" dir="ltr">{{TOTAL_DEBT}} <span class="currency">{{CURRENCY}}</span></div>
-      <div class="card-hint">إجمالي الكريدي المسجل لدى جميع الكليان</div>
+      <div class="card-hint">إجمالي الديون المسجلة لدى جميع العملاء</div>
     </article>
 
     <article class="summary-card payment-card">
@@ -199,7 +199,7 @@
       </div>
       <div class="card-label">مجموع ما دفع</div>
       <div class="card-value" dir="ltr">{{TOTAL_PAID}} <span class="currency">{{CURRENCY}}</span></div>
-      <div class="card-hint">إجمالي الدفعات المسجلة لدى جميع الكليان</div>
+      <div class="card-hint">إجمالي الدفعات المسجلة لدى جميع العملاء</div>
     </article>
 
     <article class="summary-card net-card net-debt">
@@ -212,7 +212,7 @@
       </div>
       <div class="card-label">إجمالي الديون المستحقة</div>
       <div class="card-value" dir="ltr">{{TOTAL_RECEIVABLE}} <span class="currency">{{CURRENCY}}</span></div>
-      <div class="card-hint">مجموع الأرصدة الموجبة المستحقة على الكليان</div>
+      <div class="card-hint">مجموع الأرصدة الموجبة المستحقة على العملاء</div>
     </article>
   </section>
 
@@ -222,7 +222,7 @@
     <div class="section-heading">
       <div>
         <div class="eyebrow">قائمة الأرصدة</div>
-        <h2>أرصدة الكليان</h2>
+        <h2>أرصدة العملاء</h2>
       </div>
       <div class="entries-chip">جميع المبالغ بـ {{CURRENCY}}</div>
     </div>
@@ -230,7 +230,7 @@
     <table class="ledger report-table">
       <thead>
         <tr>
-          <th class="col-client">الزبون</th>
+          <th class="col-client">العميل</th>
           <th class="col-last">آخر معاملة</th>
           <th class="col-total">مجموع ما أخذ</th>
           <th class="col-total">مجموع ما دفع</th>

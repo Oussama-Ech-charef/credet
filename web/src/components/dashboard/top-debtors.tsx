@@ -16,7 +16,7 @@ export function TopDebtors({ clients, currency }: TopDebtorsProps) {
       <header className="panel__header">
         <div>
           <h2 className="panel__title" id="top-debtors-title">
-            أكثر الكليان مديونية
+            أكثر العملاء مديونية
           </h2>
           <p className="panel__subtitle">مرتبون حسب الرصيد المستحق</p>
         </div>
@@ -30,7 +30,7 @@ export function TopDebtors({ clients, currency }: TopDebtorsProps) {
         {clients.length === 0 ? (
           <EmptyState
             compact
-            description="لا توجد أرصدة مستحقة حاليًا. كل الحسابات خالصة."
+            description="لا توجد أرصدة مستحقة حاليًا. كل الحسابات مسددة."
             icon="check"
             title="لا يوجد مدينون"
           />

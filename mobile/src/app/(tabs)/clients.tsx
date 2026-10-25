@@ -23,7 +23,7 @@ import { colors, fonts, radius, spacing } from "@/constants/theme";
 import { useClients, useShopSettings } from "@/hooks/use-credet-queries";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { apiErrorMessage } from "@/lib/api";
-import { clientMatchesSearch, formatCount } from "@/lib/format";
+import { clientMatchesSearch, formatClientCount, formatCount } from "@/lib/format";
 import { callPhone, openWhatsAppChat } from "@/lib/links";
 import type { Client, ClientFilter } from "@/lib/types";
 import { useToast } from "@/providers/toast-provider";
@@ -78,7 +78,7 @@ export default function ClientsScreen() {
 
   const handleCall = async (client: Client) => {
     if (!client.phone) {
-      showToast("لا يوجد رقم هاتف مسجل لهذا الكليان.", "error");
+      showToast("لا يوجد رقم هاتف مسجل لهذا العميل.", "error");
       return;
     }
 
@@ -111,7 +111,7 @@ export default function ClientsScreen() {
         action={
           <View style={styles.headerActions}>
             <IconButton
-              accessibilityLabel="إضافة كليان جديد"
+              accessibilityLabel="إضافة عميل جديد"
               backgroundColor={colors.actionSoft}
               borderColor="rgba(99, 102, 241, 0.28)"
               color={colors.actionText}
@@ -119,22 +119,22 @@ export default function ClientsScreen() {
               onPress={() => router.push("/clients/new")}
             />
             <IconButton
-              accessibilityLabel="تحديث قائمة الكليان"
+              accessibilityLabel="تحديث قائمة العملاء"
               disabled={clientsQuery.isFetching}
               icon="refresh-outline"
               onPress={refresh}
             />
           </View>
         }
-        subtitle="ابحث، تابع الأرصدة، وافتح حساب أي كليان."
-        title="الكليان"
+        subtitle="ابحث، تابع الأرصدة، وافتح حساب أي عميل."
+        title="العملاء"
       />
 
       <View style={styles.toolbar}>
         <View style={styles.searchBox}>
           <Ionicons color={colors.dim} name="search-outline" size={18} />
           <TextInput
-            accessibilityLabel="البحث عن كليان"
+            accessibilityLabel="البحث عن عميل"
             autoCapitalize="none"
             autoCorrect={false}
             onChangeText={setSearch}
@@ -158,12 +158,12 @@ export default function ClientsScreen() {
         </View>
 
         <SegmentedControl
-          accessibilityLabel="تصفية الكليان"
+          accessibilityLabel="تصفية العملاء"
           onChange={setFilter}
           options={[
             { value: "all", label: "الكل", activeColor: colors.actionText, activeBackground: colors.actionSoft },
-            { value: "debt", label: "عليهم كريدي", activeColor: colors.debtText, activeBackground: colors.debtSoft },
-            { value: "settled", label: "خالصين", activeColor: colors.paymentText, activeBackground: colors.paymentSoft },
+            { value: "debt", label: "عليهم ديون", activeColor: colors.debtText, activeBackground: colors.debtSoft },
+            { value: "settled", label: "مسددون", activeColor: colors.paymentText, activeBackground: colors.paymentSoft },
           ]}
           value={filter}
         />
@@ -171,8 +171,8 @@ export default function ClientsScreen() {
         {!clientsQuery.isPending && !error ? (
           <AppText accessibilityLiveRegion="polite" tone="dim" variant="caption">
             {hasQuery
-              ? `${formatCount(filtered.length)} نتيجة من ${formatCount(clients.length)} كليان`
-              : `${formatCount(clients.length)} كليان في الدفتر`}
+              ? `النتائج: ${formatCount(filtered.length)} من ${formatClientCount(clients.length)}`
+              : `${formatClientCount(clients.length)} في السجل`}
           </AppText>
         ) : null}
       </View>
@@ -195,14 +195,14 @@ export default function ClientsScreen() {
             <ErrorState message={error} onRetry={refresh} />
           ) : clients.length === 0 ? (
             <EmptyState
-              description="أضف أول كليان من زر الإضافة بالأعلى، ثم ابدأ تسجيل الحركات."
+              description="أضف أول عميل من زر الإضافة بالأعلى، ثم ابدأ تسجيل الحركات."
               icon="people-outline"
-              title="لا يوجد كليان بعد"
+              title="لا يوجد عميل بعد"
             />
           ) : (
             <EmptyState
               actionLabel="إعادة ضبط البحث"
-              description="جرّب اسمًا أو رقم هاتف آخر، أو أعد ضبط الفلاتر."
+              description="جرّب اسمًا أو رقم هاتف آخر، أو أعد ضبط التصفية."
               icon="search-outline"
               onAction={resetFilters}
               title="لا توجد نتائج مطابقة"

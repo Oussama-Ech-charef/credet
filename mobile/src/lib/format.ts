@@ -50,6 +50,52 @@ export function formatCount(value: number): string {
   return countFormatter.format(Number.isFinite(value) ? value : 0);
 }
 
+export function formatClientCount(value: number): string {
+  const count = Number.isFinite(value) ? Math.max(0, Math.floor(value)) : 0;
+  const formatted = formatCount(count);
+
+  if (count === 1) {
+    return "عميل واحد";
+  }
+
+  if (count === 2) {
+    return "عميلان";
+  }
+
+  const remainder = count % 100;
+
+  if (remainder >= 3 && remainder <= 10) {
+    return `${formatted} عملاء`;
+  }
+
+  if (remainder >= 11 && remainder <= 99) {
+    return `${formatted} عميلًا`;
+  }
+
+  return `${formatted} عميل`;
+}
+
+export function formatMovementCount(value: number): string {
+  const count = Number.isFinite(value) ? Math.max(0, Math.floor(value)) : 0;
+  const formatted = formatCount(count);
+
+  if (count === 1) {
+    return "حركة واحدة";
+  }
+
+  if (count === 2) {
+    return "حركتان";
+  }
+
+  const remainder = count % 100;
+
+  if (remainder >= 3 && remainder <= 10) {
+    return `${formatted} حركات`;
+  }
+
+  return `${formatted} حركة`;
+}
+
 export function parseLocalDate(value: string): Date {
   if (!value) {
     return new Date();
@@ -167,14 +213,14 @@ export function balanceKind(balance: number): "debt" | "settled" | "credit" {
 
 export function balanceLabel(balance: number): string {
   if (balance > 0) {
-    return "عليه كريدي";
+    return "عليه دين";
   }
 
   if (balance < 0) {
     return "رصيد لصالحه";
   }
 
-  return "الحساب خالص";
+  return "الحساب مسدد";
 }
 
 export function paidRatio(totalDebt: number, totalPaid: number): number {
@@ -233,11 +279,11 @@ export function statementMessage({
   currency?: string;
 }): string {
   return [
-    `السلام عليكم سي ${clientName}،`,
+    `السلام عليكم، ${clientName}:`,
     `هذا كشف حسابك من ${shopName}:`,
-    `- مجموع الديون: ${formatAmount(totalDebt, currency)}`,
-    `- مجموع المدفوع: ${formatAmount(totalPaid, currency)}`,
-    `- الباقي الصافي: ${formatAmount(currentBalance, currency)}`,
-    "شكراً لتعاملكم معنا.",
+    `- إجمالي الديون: ${formatAmount(totalDebt, currency)}`,
+    `- إجمالي المدفوع: ${formatAmount(totalPaid, currency)}`,
+    `- الرصيد الصافي: ${formatAmount(currentBalance, currency)}`,
+    "شكرًا لتعاملكم معنا.",
   ].join("\n");
 }

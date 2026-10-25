@@ -342,7 +342,7 @@ The statement contains:
 - Shop name, contact phone, generated date/time, and statement number (`CS-<clientId>-<YYYYMMDD>`).
 - Client name, phone, address, notes, and file number.
 - Three summary cards: total debts, total payments, and the net outstanding balance. The net card is highlighted in red when the client owes money and green when the client has an advance; settled accounts use the neutral style.
-- A chronological transaction table with date, type (`كريدي` / `دفعة`), description and optional note, and amount in the configured currency.
+- A chronological transaction table with date, type (`دين` / `دفعة`), description and optional note, and amount in the configured currency.
 - A printable footer with the thank-you note and signature lines.
 
 The summary cards always show all-time account totals. When `from`/`to` are supplied, only the transaction table is filtered; the PDF prints a note explaining that the summary covers the full account. An account with no entries renders a clear empty state instead of an empty table.
@@ -353,7 +353,7 @@ The general report contains:
 
 - Shop header, generated date/time, report number (`GR-<YYYYMMDD>`), and a note describing the selected filter.
 - Four summary cards: client count (with debtor/settled breakdown), total debts, total payments, and total receivable.
-- A table of clients with last operation date, total debts, total payments, current balance, and a status badge (`مدين`, `رصيد لصالحه`, or `خالص`).
+- A table of clients with last operation date, total debts, total payments, current balance, and a status badge (`مدين`, `رصيد لصالحه`, or `مسدد`).
 - A totals bar and a footer with signature lines and the thank-you note.
 
 Balances are sorted from highest amount owed to lowest. `debt_only` excludes settled and advance accounts from both the table and the totals.

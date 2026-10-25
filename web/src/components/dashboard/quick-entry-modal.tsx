@@ -120,7 +120,7 @@ export function QuickEntryModal({
     const nextErrors: FormErrors = {};
 
     if (!selectedClient) {
-      nextErrors.client = "اختر الكليان أولًا.";
+      nextErrors.client = "اختر العميل أولًا.";
     }
 
     const amountResult = parseAmountInput(amount);
@@ -170,7 +170,7 @@ export function QuickEntryModal({
 
       toast(
         isDebt
-          ? `تم تسجيل كريدي لصالح ${selectedClient.name}.`
+          ? `تم تسجيل دين لصالح ${selectedClient.name}.`
           : `تم تسجيل دفعة من ${selectedClient.name}.`,
       );
       onSaved(result);
@@ -198,7 +198,7 @@ export function QuickEntryModal({
             type="submit"
             variant={isDebt ? "danger" : "success"}
           >
-            {isDebt ? "تسجيل الكريدي" : "تسجيل الدفعة"}
+            {isDebt ? "تسجيل الدين" : "تسجيل الدفعة"}
           </Button>
         </>
       }
@@ -206,10 +206,10 @@ export function QuickEntryModal({
       open={open}
       size="lg"
       title="تسجيل حركة سريعة"
-      description="اختر الكليان، ثم أدخل المبلغ. تبقى كل الحركات في دفتر الحساب."
+      description="اختر العميل، ثم أدخل المبلغ. تبقى كل الحركات في سجل الحساب."
     >
       {loadingClients ? (
-        <div className="skeleton-stack" aria-label="جاري تحميل الكليان">
+        <div className="skeleton-stack" aria-label="جاري تحميل العملاء">
           <span className="skeleton" style={{ height: 44 }} />
           <span className="skeleton" style={{ height: 150 }} />
         </div>
@@ -221,9 +221,9 @@ export function QuickEntryModal({
       ) : clients.length === 0 ? (
         <EmptyState
           compact
-          description="أضف كليانًا أولًا من زر «إضافة كليان» في لوحة التحكم."
+          description="أضف عميلًا أولًا من زر «إضافة عميل» في لوحة التحكم."
           icon="users"
-          title="لا يوجد كليان بعد"
+          title="لا يوجد عميل بعد"
         />
       ) : (
         <form className="form-stack" id={formId} onSubmit={handleSubmit}>
@@ -231,7 +231,7 @@ export function QuickEntryModal({
             {selectedClient ? (
               <div className="quick-entry__selected">
                 <div>
-                  <span className="quick-entry__selected-label">الكليان المختار</span>
+                  <span className="quick-entry__selected-label">العميل المختار</span>
                   <strong>{selectedClient.name}</strong>
                   <span>{selectedClient.phone || "بدون رقم هاتف"}</span>
                 </div>
@@ -274,7 +274,7 @@ export function QuickEntryModal({
               type="button"
             >
               <Icon name="plus" size={15} />
-              كريدي
+              دين
             </button>
             <button
               aria-pressed={!isDebt}

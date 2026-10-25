@@ -55,15 +55,15 @@ export function QuickActions({ onDebt, onPayment }: QuickActionsProps) {
       <ActionTile
         background={colors.debtSoft}
         color={colors.debtText}
-        hint="أضف مبلغًا على الحساب"
+        hint="أضف دينًا إلى الحساب"
         icon="arrow-up-outline"
         onPress={onDebt}
-        title="تسجيل كريدي"
+        title="تسجيل دين"
       />
       <ActionTile
         background={colors.paymentSoft}
         color={colors.paymentText}
-        hint="سجّل ما دفعه الكليان"
+        hint="سجّل ما دفعه العميل"
         icon="arrow-down-outline"
         onPress={onPayment}
         title="تسجيل دفعة"
