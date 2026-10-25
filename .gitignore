@@ -26,6 +26,10 @@ data/
 # Application and runtime logs
 logs/
 *.log
+# Keep the web log directory placeholder, but never commit runtime logs.
+!web/logs/
+web/logs/*
+!web/logs/.gitignore
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*

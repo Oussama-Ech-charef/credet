@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import type { ReactNode } from "react";
 import { AppShell } from "@/components/app-shell";
+import { GlobalErrorLogger } from "@/components/global-error-logger";
 import { SettingsProvider } from "@/hooks/use-settings";
 import { ToastProvider } from "@/hooks/use-toast";
 import "./globals.css";
@@ -35,6 +36,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html className={cairo.variable} dir="rtl" lang="ar">
       <body>
+        <GlobalErrorLogger />
         <ToastProvider>
           <SettingsProvider>
             <AppShell>{children}</AppShell>

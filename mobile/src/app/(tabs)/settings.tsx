@@ -1,13 +1,15 @@
 import { Ionicons } from "@expo/vector-icons";
 import Constants from "expo-constants";
+import * as Sharing from "expo-sharing";
 import { useState } from "react";
-import { StyleSheet, View } from "react-native";
+import { Platform, StyleSheet, View } from "react-native";
 
 import { AppText } from "@/components/ui/app-text";
 import { Badge } from "@/components/ui/badge";
 import { BrandMark } from "@/components/ui/brand-mark";
 import { Button, IconButton } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { ErrorState } from "@/components/ui/error-state";
 import { TextField } from "@/components/ui/field";
 import { PageHeader } from "@/components/ui/page-header";
@@ -19,7 +21,25 @@ import { useShopSettings } from "@/hooks/use-credet-queries";
 import { useUpdateSettingsMutation } from "@/hooks/use-entry-mutations";
 import { apiErrorMessage } from "@/lib/api";
 import { formatDate } from "@/lib/format";
+import { clearLogs, getLogContent, getLogFileUri, logError } from "@/lib/logger";
 import { useToast } from "@/providers/toast-provider";
+
+function downloadLogFile(content: string): void {
+  if (typeof document === "undefined") {
+    throw new Error("تنزيل الملف غير متاح في هذه البيئة.");
+  }
+
+  const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+  const objectUrl = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = objectUrl;
+  anchor.download = `credet-logs-${new Date().toISOString().slice(0, 10)}.log`;
+  anchor.rel = "noopener";
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  window.setTimeout(() => URL.revokeObjectURL(objectUrl), 2_000);
+}
 
 export default function SettingsScreen() {
   const { showToast } = useToast();
@@ -34,6 +54,9 @@ export default function SettingsScreen() {
   const [shopPhone, setShopPhone] = useState("");
   const [shopCurrency, setShopCurrency] = useState("");
   const [editing, setEditing] = useState(false);
+  const [exportingLogs, setExportingLogs] = useState(false);
+  const [clearingLogs, setClearingLogs] = useState(false);
+  const [clearLogsOpen, setClearLogsOpen] = useState(false);
 
   // When settings load, fill the form once (only if not already editing)
   if (settings && !editing && !shopName && !shopPhone && !shopCurrency) {
@@ -79,6 +102,64 @@ export default function SettingsScreen() {
       showToast("تم حفظ بيانات المحل.", "success");
     } catch (error) {
       showToast(apiErrorMessage(error), "error");
+    }
+  };
+
+  const handleExportLogs = async () => {
+    setExportingLogs(true);
+
+    try {
+      const content = await getLogContent();
+
+      if (!content.trim()) {
+        showToast("لا توجد أخطاء مسجلة حتى الآن.", "info");
+        return;
+      }
+
+      if (Platform.OS === "web") {
+        downloadLogFile(content);
+        showToast("تم تنزيل سجل الأخطاء.", "success");
+        return;
+      }
+
+      const fileUri = getLogFileUri();
+
+      if (!fileUri) {
+        throw new Error("مسار سجل الأخطاء غير متاح.");
+      }
+
+      const sharingAvailable = await Sharing.isAvailableAsync();
+
+      if (!sharingAvailable) {
+        showToast("مشاركة الملفات غير متاحة على هذا الجهاز.", "error");
+        return;
+      }
+
+      await Sharing.shareAsync(fileUri, {
+        dialogTitle: "سجل أخطاء Credet",
+        mimeType: "text/plain",
+        UTI: "public.plain-text",
+      });
+    } catch (error) {
+      void logError("Settings", error);
+      showToast("تعذر تصدير سجل الأخطاء.", "error");
+    } finally {
+      setExportingLogs(false);
+    }
+  };
+
+  const handleClearLogs = async () => {
+    setClearingLogs(true);
+
+    try {
+      await clearLogs();
+      setClearLogsOpen(false);
+      showToast("تم مسح سجل الأخطاء.", "success");
+    } catch (error) {
+      void logError("Settings", error);
+      showToast("تعذر مسح سجل الأخطاء.", "error");
+    } finally {
+      setClearingLogs(false);
     }
   };
 
@@ -228,6 +309,49 @@ export default function SettingsScreen() {
         </Card>
       </View>
 
+      {/* ── إعدادات متقدمة ── */}
+      <View style={styles.section}>
+        <SectionHeading meta="تخزين محلي · حد أقصى 1 ميجابايت" title="إعدادات متقدمة" />
+        <Card>
+          <View style={styles.logRow}>
+            <View style={styles.logIcon}>
+              <Ionicons
+                color={colors.actionText}
+                name="document-text-outline"
+                size={19}
+              />
+            </View>
+            <View style={styles.logCopy}>
+              <AppText variant="bodyStrong">سجل الأخطاء</AppText>
+              <AppText tone="muted" variant="caption">
+                يُحفظ محليًا على هذا الجهاز لمساعدتك على التشخيص. تُحذف كلمات
+                المرور والرموز وبيانات العملاء الحساسة تلقائيًا قبل الكتابة.
+              </AppText>
+            </View>
+          </View>
+          <View style={styles.logActions}>
+            <Button
+              fullWidth
+              icon="share-outline"
+              label="تصدير السجل"
+              loading={exportingLogs}
+              onPress={() => void handleExportLogs()}
+              style={styles.logAction}
+              variant="secondary"
+            />
+            <Button
+              disabled={exportingLogs || clearingLogs}
+              fullWidth
+              icon="trash-outline"
+              label="مسح السجل"
+              onPress={() => setClearLogsOpen(true)}
+              style={styles.logAction}
+              variant="ghost"
+            />
+          </View>
+        </Card>
+      </View>
+
       {/* ── عن التطبيق ── */}
       <View style={styles.section}>
         <SectionHeading title="عن التطبيق" />
@@ -243,6 +367,16 @@ export default function SettingsScreen() {
           </View>
         </Card>
       </View>
+
+      <ConfirmDialog
+        confirmLabel="مسح السجل"
+        description="سيتم حذف جميع الإدخالات المحفوظة في سجل الأخطاء على هذا الجهاز. لا يمكن التراجع عن هذا الإجراء."
+        loading={clearingLogs}
+        onCancel={() => setClearLogsOpen(false)}
+        onConfirm={() => void handleClearLogs()}
+        title="مسح سجل الأخطاء؟"
+        visible={clearLogsOpen}
+      />
     </Screen>
   );
 }
@@ -351,5 +485,30 @@ const styles = StyleSheet.create({
   aboutCopy: {
     flex: 1,
     gap: 1,
+  },
+  logRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: spacing.md,
+  },
+  logIcon: {
+    width: 38,
+    height: 38,
+    borderRadius: radius.md,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.actionSoft,
+  },
+  logCopy: {
+    flex: 1,
+    gap: spacing.xs,
+  },
+  logActions: {
+    flexDirection: "row",
+    gap: spacing.sm,
+    marginTop: spacing.lg,
+  },
+  logAction: {
+    flex: 1,
   },
 });

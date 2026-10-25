@@ -11,6 +11,7 @@ import {
   runTransaction,
 } from "firebase/firestore";
 import { getFirestoreDb } from "@/lib/firebase";
+import { logError } from "@/lib/logger";
 import type {
   Client,
   ClientDetailResponse,
@@ -33,18 +34,27 @@ export class FirestoreService {
 
   private async getNextId(counterName: "client_id" | "entry_id"): Promise<number> {
     const counterRef = doc(this.db, "metadata", "counters");
-    return await runTransaction(this.db, async (transaction) => {
-      const snap = await transaction.get(counterRef);
-      let nextId = 1;
-      if (snap.exists()) {
-        const current = snap.data()[counterName] || 0;
-        nextId = current + 1;
-        transaction.update(counterRef, { [counterName]: nextId });
-      } else {
-        transaction.set(counterRef, { [counterName]: nextId }, { merge: true });
-      }
-      return nextId;
-    });
+
+    try {
+      return await runTransaction(this.db, async (transaction) => {
+        const snap = await transaction.get(counterRef);
+        let nextId = 1;
+        if (snap.exists()) {
+          const current = snap.data()[counterName] || 0;
+          nextId = current + 1;
+          transaction.update(counterRef, { [counterName]: nextId });
+        } else {
+          transaction.set(counterRef, { [counterName]: nextId }, { merge: true });
+        }
+        return nextId;
+      });
+    } catch (error) {
+      await logError("FirestoreService", error, {
+        operation: "getNextId",
+        counter: counterName,
+      });
+      throw error;
+    }
   }
 
   async getSettings(): Promise<ShopSettings> {

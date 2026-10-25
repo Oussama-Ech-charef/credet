@@ -1,6 +1,7 @@
 import Constants from "expo-constants";
 import { Platform } from "react-native";
 
+import { logError } from "./logger";
 import type {
   ApiErrorBody,
   Client,
@@ -273,13 +274,30 @@ export class CredetApi {
       return (await response.json()) as T;
     } catch (error) {
       if (error instanceof ApiError) {
+        void logError("Api", error, {
+          method: init.method ?? "GET",
+          path,
+          status: error.status,
+        });
         throw error;
       }
 
       if (error instanceof Error && error.name === "AbortError") {
+        if (!signal?.aborted) {
+          void logError("Api", error, {
+            method: init.method ?? "GET",
+            path,
+            reason: "timeout",
+            timeoutMs,
+          });
+        }
         throw new ApiError("انتهت مهلة الطلب. أعد المحاولة.", 0);
       }
 
+      void logError("Api", error, {
+        method: init.method ?? "GET",
+        path,
+      });
       throw new ApiError("تعذر الاتصال بالخادم.", 0);
     } finally {
       clearTimeout(timeout);
@@ -330,13 +348,32 @@ export class CredetApi {
       };
     } catch (error) {
       if (error instanceof ApiError) {
+        void logError("Api", error, {
+          method: init.method ?? "GET",
+          path,
+          status: error.status,
+          kind: "file",
+        });
         throw error;
       }
 
       if (error instanceof Error && error.name === "AbortError") {
+        if (!init.signal?.aborted) {
+          void logError("Api", error, {
+            method: init.method ?? "GET",
+            path,
+            kind: "file",
+            reason: "timeout",
+          });
+        }
         throw new ApiError("انتهت مهلة تجهيز الملف. أعد المحاولة.", 0);
       }
 
+      void logError("Api", error, {
+        method: init.method ?? "GET",
+        path,
+        kind: "file",
+      });
       throw new ApiError("تعذر الاتصال بالخادم.", 0);
     } finally {
       clearTimeout(timeout);

@@ -9,8 +9,10 @@ import {
   updateDoc,
   where,
   type DocumentData,
+  type Transaction,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { logError, markErrorLogged } from "@/lib/logger";
 import type {
   ActivityItem,
   Client,
@@ -167,13 +169,25 @@ function mapSettings(data: DocumentData): ShopSettings {
   };
 }
 
+async function runLoggedTransaction<T>(
+  operation: (transaction: Transaction) => Promise<T>,
+): Promise<T> {
+  try {
+    return await runTransaction(db, operation);
+  } catch (error) {
+    logError("FirestoreService", error);
+    markErrorLogged(error);
+    throw error;
+  }
+}
+
 export class FirestoreService {
   private async getNextId(counterName: "client_id" | "entry_id"): Promise<number> {
     // Keep the same counter document as the mobile app so both clients
     // allocate IDs from one shared sequence.
     const counterRef = doc(db, COUNTER_COLLECTION, COUNTER_DOCUMENT);
 
-    return await runTransaction(db, async (transaction) => {
+    return await runLoggedTransaction(async (transaction) => {
       const snap = await transaction.get(counterRef);
       const current = snap.exists()
         ? Math.max(0, Math.floor(toNumber(snap.data()[counterName])))
@@ -410,7 +424,7 @@ export class FirestoreService {
       updated_at: now,
     };
 
-    return await runTransaction(db, async (transaction) => {
+    return await runLoggedTransaction(async (transaction) => {
       const clientSnap = await transaction.get(clientRef);
       const clientData = clientSnap.data();
 
@@ -461,7 +475,7 @@ export class FirestoreService {
     const entryRef = doc(db, "credit_entries", String(id));
     const now = new Date().toISOString();
 
-    const outcome = await runTransaction(db, async (transaction) => {
+    const outcome = await runLoggedTransaction(async (transaction) => {
       const entrySnap = await transaction.get(entryRef);
       const currentEntry = entrySnap.data();
 
@@ -608,7 +622,7 @@ export class FirestoreService {
   async deleteEntry(id: number): Promise<EntryDeleteResponse> {
     const entryRef = doc(db, "credit_entries", String(id));
 
-    const outcome = await runTransaction(db, async (transaction) => {
+    const outcome = await runLoggedTransaction(async (transaction) => {
       const entrySnap = await transaction.get(entryRef);
       const currentEntry = entrySnap.data();
 

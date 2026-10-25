@@ -1,4 +1,5 @@
 import { firestoreService } from "@/services/firestoreService";
+import { isErrorLogged, logError } from "@/lib/logger";
 import type {
   ApiErrorBody,
   Client,
@@ -159,7 +160,18 @@ async function firestoreCall<T>(
 
     return result;
   } catch (error) {
-    throw toApiError(error);
+    const apiError = toApiError(error);
+
+    if (
+      !signal?.aborted &&
+      !isErrorLogged(error) &&
+      apiError.status !== 400 &&
+      apiError.status !== 404
+    ) {
+      logError("Api", error);
+    }
+
+    throw apiError;
   }
 }
 
@@ -240,13 +252,20 @@ async function requestFile(
     };
   } catch (error) {
     if (error instanceof ApiError) {
+      if (!signal?.aborted) {
+        logError("Api", error);
+      }
       throw error;
     }
 
     if (error instanceof DOMException && error.name === "AbortError") {
+      if (!signal?.aborted) {
+        logError("Api", error);
+      }
       throw new ApiError("انتهت مهلة تجهيز الملف. أعد المحاولة.", 0);
     }
 
+    logError("Api", error);
     throw new ApiError("تعذر الاتصال بالخادم.", 0);
   } finally {
     clearTimeout(timeout);

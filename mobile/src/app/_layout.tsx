@@ -13,6 +13,7 @@ import { useEffect } from "react";
 import { I18nManager, Platform } from "react-native";
 
 import { colors } from "@/constants/theme";
+import { installGlobalErrorHandlers } from "@/lib/logger";
 import { AppProviders } from "@/providers/app-providers";
 import { useServerConfig } from "@/providers/server-config-provider";
 
@@ -38,6 +39,10 @@ export default function RootLayout() {
     Cairo_700Bold,
     Cairo_800ExtraBold,
   });
+
+  useEffect(() => {
+    installGlobalErrorHandlers();
+  }, []);
 
   useEffect(() => {
     if (Platform.OS !== "web") {
