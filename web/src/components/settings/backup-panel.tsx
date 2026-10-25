@@ -57,7 +57,7 @@ export function BackupPanel() {
             <Icon name="database" size={19} />
           </span>
           <div className="backup-row__copy">
-            <strong>نسخة SQLite كاملة (.db)</strong>
+            <strong>نسخة Firestore كاملة (.json)</strong>
             <span>
               تشمل الكليان والحركات والإعدادات. مناسبة للحفظ طويل الأمد أو النقل
               إلى جهاز آخر.

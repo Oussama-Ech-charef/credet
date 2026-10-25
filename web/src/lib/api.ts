@@ -1,3 +1,4 @@
+import { firestoreService } from "@/services/firestoreService";
 import type {
   ApiErrorBody,
   Client,
@@ -14,6 +15,8 @@ import type {
 
 const DEFAULT_API_URL = "http://localhost:4000/api";
 
+// Only the optional PDF statement still uses the legacy Express backend.
+// Every other operation reads and writes Firestore directly.
 export const API_BASE_URL = (
   process.env.NEXT_PUBLIC_API_URL || DEFAULT_API_URL
 ).replace(/\/+$/, "");
@@ -33,7 +36,10 @@ export class ApiError extends Error {
 export function apiErrorMessage(error: unknown): string {
   if (error instanceof ApiError) {
     if (error.status === 0) {
-      return "تعذر الاتصال بالخادم. تأكد من تشغيل الـ API ثم أعد المحاولة.";
+      return (
+        error.message ||
+        "تعذر الاتصال بـ Firebase. تحقق من اتصال الإنترنت ثم أعد المحاولة."
+      );
     }
 
     if (error.status === 404) {
@@ -45,7 +51,7 @@ export function apiErrorMessage(error: unknown): string {
     }
 
     if (error.status >= 500) {
-      return "حدث خطأ في الخادم. أعد المحاولة بعد لحظات.";
+      return "حدث خطأ أثناء حفظ البيانات. أعد المحاولة بعد لحظات.";
     }
 
     return error.message || "تعذر إتمام الطلب.";
@@ -58,66 +64,116 @@ export function apiErrorMessage(error: unknown): string {
   return "حدث خطأ غير متوقع.";
 }
 
-interface RequestOptions extends RequestInit {
-  timeoutMs?: number;
+function firebaseErrorCode(error: unknown): string | null {
+  if (typeof error !== "object" || error === null || !("code" in error)) {
+    return null;
+  }
+
+  const code = (error as { code?: unknown }).code;
+  return typeof code === "string" ? code : null;
 }
 
-async function request<T>(
-  path: string,
-  { timeoutMs = 20_000, signal, headers, ...init }: RequestOptions = {},
+function arabicErrorMessage(error: unknown): string | null {
+  if (error instanceof Error && /[\u0600-\u06FF]/.test(error.message)) {
+    return error.message;
+  }
+
+  return null;
+}
+
+function toApiError(error: unknown): ApiError {
+  if (error instanceof ApiError) {
+    return error;
+  }
+
+  switch (firebaseErrorCode(error)) {
+    case "permission-denied":
+      return new ApiError(
+        "ليس لديك صلاحية الوصول إلى بيانات Firebase.",
+        403,
+        error,
+      );
+    case "unauthenticated":
+      return new ApiError(
+        "انتهت صلاحية الوصول إلى Firebase. أعد المحاولة.",
+        401,
+        error,
+      );
+    case "unavailable":
+    case "deadline-exceeded":
+    case "network-request-failed":
+    case "cancelled":
+      return new ApiError(
+        "تعذر الاتصال بـ Firebase. تحقق من اتصال الإنترنت ثم أعد المحاولة.",
+        0,
+        error,
+      );
+    case "not-found":
+      return new ApiError(
+        "لم يتم العثور على السجل المطلوب. ربما تم حذفه.",
+        404,
+        error,
+      );
+    case "failed-precondition":
+      return new ApiError(
+        "تعذر تنفيذ العملية. تحقق من إعداد Firestore ثم أعد المحاولة.",
+        500,
+        error,
+      );
+    case "resource-exhausted":
+      return new ApiError(
+        "تم تجاوز حد العمليات مؤقتًا. أعد المحاولة بعد قليل.",
+        429,
+        error,
+      );
+    default:
+      break;
+  }
+
+  const message = arabicErrorMessage(error);
+  if (message) {
+    return new ApiError(message, 400, error);
+  }
+
+  return new ApiError(
+    "تعذر إتمام الطلب عبر Firebase. أعد المحاولة.",
+    0,
+    error,
+  );
+}
+
+async function firestoreCall<T>(
+  operation: () => Promise<T>,
+  signal?: AbortSignal,
 ): Promise<T> {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), timeoutMs);
-  const abortFromCaller = () => controller.abort();
-  signal?.addEventListener("abort", abortFromCaller, { once: true });
+  if (signal?.aborted) {
+    throw new ApiError("تم إلغاء الطلب.", 0);
+  }
 
   try {
-    const response = await fetch(`${API_BASE_URL}${path}`, {
-      ...init,
-      cache: "no-store",
-      signal: controller.signal,
-      headers: {
-        Accept: "application/json",
-        ...(init.body ? { "Content-Type": "application/json" } : {}),
-        ...headers,
-      },
-    });
+    const result = await operation();
 
-    if (!response.ok) {
-      let body: ApiErrorBody | null = null;
-
-      try {
-        body = (await response.json()) as ApiErrorBody;
-      } catch {
-        body = null;
-      }
-
-      throw new ApiError(
-        body?.error || `Request failed with status ${response.status}`,
-        response.status,
-        body?.details,
-      );
+    if (signal?.aborted) {
+      throw new ApiError("تم إلغاء الطلب.", 0);
     }
 
-    if (response.status === 204) {
-      return undefined as T;
-    }
-
-    return (await response.json()) as T;
+    return result;
   } catch (error) {
-    if (error instanceof ApiError) {
-      throw error;
-    }
-
-    if (error instanceof DOMException && error.name === "AbortError") {
-      throw new ApiError("انتهت مهلة الطلب. أعد المحاولة.", 0);
-    }
-
-    throw new ApiError("تعذر الاتصال بالخادم.", 0);
-  } finally {
-    clearTimeout(timeout);
-    signal?.removeEventListener("abort", abortFromCaller);
+    throw toApiError(error);
   }
+}
+
+function numericId(value: number | string, message: string): number {
+  const id = Number(value);
+  if (!Number.isSafeInteger(id) || id <= 0) {
+    throw new ApiError(message, 400);
+  }
+
+  return id;
+}
+
+interface RequestOptions extends RequestInit {
+  timeoutMs?: number;
 }
 
 function filenameFromDisposition(value: string | null, fallback: string): string {
@@ -210,107 +266,129 @@ export function saveBlob(blob: Blob, filename: string): void {
   window.setTimeout(() => URL.revokeObjectURL(objectUrl), 2_000);
 }
 
-function buildQuery(params: Record<string, string | undefined>): string {
-  const search = new URLSearchParams();
-
-  for (const [key, value] of Object.entries(params)) {
-    if (value !== undefined && value !== "") {
-      search.set(key, value);
-    }
-  }
-
-  const query = search.toString();
-  return query ? `?${query}` : "";
-}
-
 export const api = {
   getStats(signal?: AbortSignal): Promise<StatsOverview> {
-    return request<StatsOverview>("/stats/overview", { signal });
+    return firestoreCall(() => firestoreService.getStats(), signal);
   },
 
   listClients(
     { search = "", status = "all" as ClientStatus } = {},
     signal?: AbortSignal,
   ): Promise<Client[]> {
-    return request<Client[]>(
-      `/clients${buildQuery({ search, status })}`,
-      { signal },
+    return firestoreCall(
+      () => firestoreService.listClients({ search, status }),
+      signal,
     );
   },
 
-  getClient(id: number | string, signal?: AbortSignal): Promise<ClientDetailResponse> {
-    return request<ClientDetailResponse>(`/clients/${id}`, { signal });
+  getClient(
+    id: number | string,
+    signal?: AbortSignal,
+  ): Promise<ClientDetailResponse> {
+    return firestoreCall(
+      () =>
+        firestoreService.getClient(
+          numericId(id, "رقم الكليان غير صالح."),
+        ),
+      signal,
+    );
   },
 
   createClient(input: ClientInput): Promise<Client> {
-    return request<Client>("/clients", {
-      method: "POST",
-      body: JSON.stringify(input),
-    });
+    return firestoreCall(() => firestoreService.createClient(input));
   },
 
-  listEntries(clientId: number | string, signal?: AbortSignal): Promise<Entry[]> {
-    return request<Entry[]>(`/clients/${clientId}/entries`, { signal });
+  listEntries(
+    clientId: number | string,
+    signal?: AbortSignal,
+  ): Promise<Entry[]> {
+    return firestoreCall(
+      () =>
+        firestoreService.listEntries(
+          numericId(clientId, "رقم الكليان غير صالح."),
+        ),
+      signal,
+    );
   },
 
   createEntry(
     clientId: number | string,
     input: EntryInput,
   ): Promise<EntryMutationResponse> {
-    return request<EntryMutationResponse>(`/clients/${clientId}/entries`, {
-      method: "POST",
-      body: JSON.stringify(input),
-    });
+    return firestoreCall(() =>
+      firestoreService.createEntry(
+        numericId(clientId, "رقم الكليان غير صالح."),
+        input,
+      ),
+    );
   },
 
   updateEntry(
     entryId: number | string,
     input: Partial<EntryInput>,
   ): Promise<EntryMutationResponse> {
-    return request<EntryMutationResponse>(`/entries/${entryId}`, {
-      method: "PUT",
-      body: JSON.stringify(input),
-    });
+    return firestoreCall(() =>
+      firestoreService.updateEntry(
+        numericId(entryId, "رقم الحركة غير صالح."),
+        input,
+      ),
+    );
   },
 
   deleteEntry(entryId: number | string): Promise<EntryDeleteResponse> {
-    return request<EntryDeleteResponse>(`/entries/${entryId}`, {
-      method: "DELETE",
-    });
+    return firestoreCall(() =>
+      firestoreService.deleteEntry(
+        numericId(entryId, "رقم الحركة غير صالح."),
+      ),
+    );
   },
 
   getSettings(signal?: AbortSignal): Promise<ShopSettings> {
-    return request<ShopSettings>("/settings", { signal });
+    return firestoreCall(() => firestoreService.getSettings(), signal);
   },
 
   updateSettings(
     input: Pick<ShopSettings, "shop_name" | "shop_phone" | "currency">,
   ): Promise<{ success: boolean; settings: ShopSettings }> {
-    return request<{ success: boolean; settings: ShopSettings }>("/settings", {
-      method: "PUT",
-      body: JSON.stringify(input),
-    });
+    return firestoreCall(async () => ({
+      success: true,
+      settings: await firestoreService.updateSettings(input),
+    }));
   },
 
-  downloadClientStatement(
+  async downloadClientStatement(
     clientId: number | string,
   ): Promise<{ blob: Blob; filename: string }> {
-    return requestFile(
-      `/reports/client/${clientId}/pdf`,
-      {},
-      `credet-client-${clientId}.pdf`,
-    );
+    const id = numericId(clientId, "رقم الكليان غير صالح.");
+
+    try {
+      return await requestFile(
+        `/reports/client/${id}/pdf`,
+        { timeoutMs: 15_000 },
+        `credet-client-${id}.pdf`,
+      );
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 0) {
+        throw new ApiError(
+          "تصدير PDF عبر الويب يتطلب تشغيل السيرفر أو استخدام تطبيق الموبايل",
+          0,
+          error,
+        );
+      }
+
+      throw error;
+    }
   },
 
   downloadDatabase(): Promise<{ blob: Blob; filename: string }> {
-    return requestFile("/backup/download", {}, "credet.db");
+    return firestoreCall(() => firestoreService.exportJson());
   },
 
-  exportJson(): Promise<{ blob: Blob; filename: string }> {
-    return requestFile(
-      "/backup/export-json",
-      { method: "POST" },
-      "credet-backup.json",
-    );
+  async exportJson(): Promise<{ blob: Blob; filename: string }> {
+    const file = await firestoreCall(() => firestoreService.exportJson());
+    return {
+      blob: file.blob,
+      filename: "credet-backup.json",
+    };
   },
 };
