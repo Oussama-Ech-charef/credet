@@ -40,6 +40,7 @@ pnpm-debug.log*
 .impeccable/
 .temp/
 .tmp/
+.agent/
 
 # OS generated files
 .DS_Store
