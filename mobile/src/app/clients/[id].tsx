@@ -26,14 +26,13 @@ import { formatAmount, formatSignedAmount, statementMessage } from "@/lib/format
 import { hapticDelete } from "@/lib/haptics";
 import { callPhone, openWhatsAppChat, shareViaWhatsApp } from "@/lib/links";
 import type { Entry, EntryMutationResponse } from "@/lib/types";
-import { useServerConfig } from "@/providers/server-config-provider";
+import { createStatementPdfFile } from "@/services/mobilePdfService";
 import { useToast } from "@/providers/toast-provider";
 
 export default function ClientLedgerScreen() {
   const router = useRouter();
   const canGoBack = useCanGoBack();
   const { showToast } = useToast();
-  const { api } = useServerConfig();
   const params = useLocalSearchParams<{ id: string }>();
   const clientId = Number(params.id);
   const validId = Number.isSafeInteger(clientId) && clientId > 0;
@@ -151,14 +150,18 @@ export default function ClientLedgerScreen() {
   };
 
   const handleSharePdf = async () => {
-    if (!client) {
+    if (!client || !detail || !settingsQuery.data) {
       return;
     }
 
     setSharingPdf(true);
 
     try {
-      const download = await api.downloadClientStatement(client.id);
+      const download = await createStatementPdfFile(
+        detail,
+        entries,
+        settingsQuery.data,
+      );
       await shareDownloadedFile(download, {
         mimeType: "application/pdf",
         dialogTitle: "مشاركة كشف الحساب",

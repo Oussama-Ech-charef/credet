@@ -1,8 +1,14 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useQueryClient } from "@tanstack/react-query";
+/**
+ * FirebaseConfigProvider
+ *
+ * Replaces the old HTTP-based ServerConfigProvider.
+ * The app now reads and writes data directly through Firebase Firestore —
+ * no local backend server is needed. This provider simply boots the Firebase
+ * connection and signals when the app is ready to render.
+ */
+
 import {
   createContext,
-  useCallback,
   useContext,
   useEffect,
   useMemo,
@@ -10,121 +16,74 @@ import {
   type ReactNode,
 } from "react";
 
-import {
-  CredetApi,
-  defaultApiBaseUrl,
-  normalizeBaseUrl,
-} from "@/lib/api";
-import type { ShopSettings } from "@/lib/types";
+import { getFirestoreDb } from "@/lib/firebase";
+import { firestoreService } from "@/services/firestoreService";
 
-const STORAGE_KEY = "@credet/api-base-url";
-
-interface ServerConfigContextValue {
-  baseUrl: string;
-  defaultBaseUrl: string;
-  api: CredetApi;
+interface FirebaseConfigContextValue {
+  /** True once Firebase has been initialised and the app may render. */
   ready: boolean;
-  saveBaseUrl: (value: string) => Promise<string>;
-  resetBaseUrl: () => Promise<string>;
-  testConnection: (value: string) => Promise<ShopSettings>;
+  /** Whether the initial seed check completed (not necessarily seeded). */
+  seeded: boolean;
 }
 
-const ServerConfigContext = createContext<ServerConfigContextValue | null>(null);
+const FirebaseConfigContext = createContext<FirebaseConfigContextValue | null>(null);
 
 export function ServerConfigProvider({ children }: { children: ReactNode }) {
-  const queryClient = useQueryClient();
-  const fallbackBaseUrl = useMemo(() => defaultApiBaseUrl(), []);
-  const [baseUrl, setBaseUrl] = useState(fallbackBaseUrl);
   const [ready, setReady] = useState(false);
+  const [seeded, setSeeded] = useState(false);
 
   useEffect(() => {
     let active = true;
 
-    AsyncStorage.getItem(STORAGE_KEY)
-      .then((stored) => {
-        if (!active || !stored) {
-          return;
-        }
+    // Eagerly initialise the Firestore connection so the local cache warms up
+    // before any screen tries to read data. Then seed demo data if the database
+    // is completely empty (first launch only).
+    const init = async () => {
+      try {
+        // Trigger initialisation — getFirestoreDb is idempotent.
+        getFirestoreDb();
 
-        const normalized = normalizeBaseUrl(stored);
+        // Seed on first launch only; returns false if data already exists.
+        const wasSeeded = await firestoreService.seedInitialDataIfNeeded();
 
-        if (normalized.url) {
-          setBaseUrl(normalized.url);
-        } else {
-          void AsyncStorage.removeItem(STORAGE_KEY);
+        if (active) {
+          setSeeded(wasSeeded);
         }
-      })
-      .catch(() => {
-        // The default address remains usable if local storage is unavailable.
-      })
-      .finally(() => {
+      } catch {
+        // Firebase initialisation failures are non-fatal.
+        // The app will still render; individual queries will surface errors.
+      } finally {
         if (active) {
           setReady(true);
         }
-      });
+      }
+    };
+
+    void init();
 
     return () => {
       active = false;
     };
   }, []);
 
-  const saveBaseUrl = useCallback(
-    async (value: string) => {
-      const normalized = normalizeBaseUrl(value);
-
-      if (!normalized.url) {
-        throw new Error(normalized.error || "عنوان الخادم غير صالح.");
-      }
-
-      await AsyncStorage.setItem(STORAGE_KEY, normalized.url);
-      setBaseUrl(normalized.url);
-      queryClient.clear();
-      return normalized.url;
-    },
-    [queryClient],
-  );
-
-  const resetBaseUrl = useCallback(async () => {
-    await AsyncStorage.removeItem(STORAGE_KEY);
-    setBaseUrl(fallbackBaseUrl);
-    queryClient.clear();
-    return fallbackBaseUrl;
-  }, [fallbackBaseUrl, queryClient]);
-
-  const testConnection = useCallback(async (value: string) => {
-    const normalized = normalizeBaseUrl(value);
-
-    if (!normalized.url) {
-      throw new Error(normalized.error || "عنوان الخادم غير صالح.");
-    }
-
-    return new CredetApi(normalized.url).getSettings();
-  }, []);
-
-  const api = useMemo(() => new CredetApi(baseUrl), [baseUrl]);
-
-  const contextValue = useMemo<ServerConfigContextValue>(
-    () => ({
-      baseUrl,
-      defaultBaseUrl: fallbackBaseUrl,
-      api,
-      ready,
-      saveBaseUrl,
-      resetBaseUrl,
-      testConnection,
-    }),
-    [api, baseUrl, fallbackBaseUrl, ready, resetBaseUrl, saveBaseUrl, testConnection],
+  const value = useMemo<FirebaseConfigContextValue>(
+    () => ({ ready, seeded }),
+    [ready, seeded],
   );
 
   return (
-    <ServerConfigContext.Provider value={contextValue}>
+    <FirebaseConfigContext.Provider value={value}>
       {children}
-    </ServerConfigContext.Provider>
+    </FirebaseConfigContext.Provider>
   );
 }
 
-export function useServerConfig(): ServerConfigContextValue {
-  const value = useContext(ServerConfigContext);
+// ──────────────────────────────────────────────────────────────────────────────
+// Hook
+// ──────────────────────────────────────────────────────────────────────────────
+
+export function useServerConfig(): FirebaseConfigContextValue {
+  const value = useContext(FirebaseConfigContext);
 
   if (!value) {
     throw new Error("useServerConfig must be used inside ServerConfigProvider");

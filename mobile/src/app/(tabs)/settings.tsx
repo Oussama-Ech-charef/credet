@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import Constants from "expo-constants";
 import { useState } from "react";
-import { Platform, StyleSheet, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 
 import { AppText } from "@/components/ui/app-text";
 import { Badge } from "@/components/ui/badge";
@@ -16,140 +16,69 @@ import { SectionHeading } from "@/components/ui/section-heading";
 import { SkeletonCard } from "@/components/ui/skeleton";
 import { colors, radius, spacing } from "@/constants/theme";
 import { useShopSettings } from "@/hooks/use-credet-queries";
+import { useUpdateSettingsMutation } from "@/hooks/use-entry-mutations";
 import { apiErrorMessage } from "@/lib/api";
-import { shareDownloadedFile } from "@/lib/files";
 import { formatDate } from "@/lib/format";
-import { useServerConfig } from "@/providers/server-config-provider";
 import { useToast } from "@/providers/toast-provider";
-
-type Notice = { tone: "success" | "error"; message: string };
-type BackupKind = "database" | "json";
 
 export default function SettingsScreen() {
   const { showToast } = useToast();
-  const {
-    baseUrl,
-    defaultBaseUrl,
-    api,
-    saveBaseUrl,
-    resetBaseUrl,
-    testConnection,
-  } = useServerConfig();
   const settingsQuery = useShopSettings();
-  const [url, setUrl] = useState(baseUrl);
-  const [urlError, setUrlError] = useState("");
-  const [notice, setNotice] = useState<Notice | null>(null);
-  const [savingUrl, setSavingUrl] = useState(false);
-  const [testing, setTesting] = useState(false);
-  const [backupBusy, setBackupBusy] = useState<BackupKind | null>(null);
+  const updateSettingsMutation = useUpdateSettingsMutation();
 
   const settings = settingsQuery.data;
   const currency = settings?.currency ?? "DH";
-  const connectionTone = settingsQuery.isPending
-    ? "warning"
-    : settingsQuery.isError
-      ? "debt"
-      : "payment";
-  const connectionLabel = settingsQuery.isPending
-    ? "جارٍ الفحص"
-    : settingsQuery.isError
-      ? "غير متصل"
-      : "متصل";
 
-  const clearFeedback = () => {
-    setUrlError("");
-    setNotice(null);
+  // Local form state — initialised from query data when it arrives
+  const [shopName, setShopName] = useState("");
+  const [shopPhone, setShopPhone] = useState("");
+  const [shopCurrency, setShopCurrency] = useState("");
+  const [editing, setEditing] = useState(false);
+
+  // When settings load, fill the form once (only if not already editing)
+  if (settings && !editing && !shopName && !shopPhone && !shopCurrency) {
+    setShopName(settings.shop_name);
+    setShopPhone(settings.shop_phone ?? "");
+    setShopCurrency(settings.currency);
+  }
+
+  const handleEdit = () => {
+    if (settings) {
+      setShopName(settings.shop_name);
+      setShopPhone(settings.shop_phone ?? "");
+      setShopCurrency(settings.currency);
+    }
+    setEditing(true);
   };
 
-  const handleTest = async () => {
-    setTesting(true);
-    setUrlError("");
-    setNotice(null);
-
-    try {
-      const result = await testConnection(url);
-      setNotice({
-        tone: "success",
-        message: `تم الاتصال بنجاح بـ ${result.shop_name}.`,
-      });
-      showToast("الاتصال بالخادم يعمل.", "success");
-    } catch (error) {
-      const message = apiErrorMessage(error);
-      setNotice({ tone: "error", message });
-      showToast(message, "error");
-    } finally {
-      setTesting(false);
-    }
+  const handleCancel = () => {
+    setEditing(false);
   };
 
   const handleSave = async () => {
-    setSavingUrl(true);
-    setUrlError("");
-    setNotice(null);
+    const name = shopName.trim();
+    const phone = shopPhone.trim();
+    const curr = shopCurrency.trim();
+
+    if (!name) {
+      showToast("اسم المحل مطلوب.", "error");
+      return;
+    }
+    if (!curr) {
+      showToast("رمز العملة مطلوب.", "error");
+      return;
+    }
 
     try {
-      const saved = await saveBaseUrl(url);
-      setUrl(saved);
-      setNotice({
-        tone: "success",
-        message: "تم حفظ عنوان الخادم. ستُستخدم هذه النسخة في كل الطلبات.",
+      await updateSettingsMutation.mutateAsync({
+        shop_name: name,
+        shop_phone: phone || undefined,
+        currency: curr,
       });
-      showToast("تم تحديث عنوان الخادم.", "success");
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "تعذر حفظ عنوان الخادم.";
-      setUrlError(message);
-    } finally {
-      setSavingUrl(false);
-    }
-  };
-
-  const handleReset = async () => {
-    setSavingUrl(true);
-    setUrlError("");
-    setNotice(null);
-
-    try {
-      const restored = await resetBaseUrl();
-      setUrl(restored);
-      showToast("تمت استعادة العنوان الافتراضي.", "success");
-    } catch {
-      setUrlError("تعذرت استعادة العنوان الافتراضي.");
-    } finally {
-      setSavingUrl(false);
-    }
-  };
-
-  const handleBackup = async (kind: BackupKind) => {
-    setBackupBusy(kind);
-
-    try {
-      if (kind === "database") {
-        const download = await api.downloadDatabase();
-        await shareDownloadedFile(download, {
-          mimeType: "application/octet-stream",
-          dialogTitle: "مشاركة قاعدة البيانات",
-          fallbackFilename: "credet.db",
-        });
-      } else {
-        const download = await api.exportJson();
-        await shareDownloadedFile(download, {
-          mimeType: "application/json",
-          dialogTitle: "مشاركة نسخة JSON",
-          fallbackFilename: "credet-backup.json",
-          uti: "public.json",
-        });
-      }
-
-      showToast(
-        Platform.OS === "web"
-          ? "تم تنزيل النسخة الاحتياطية."
-          : "تم تجهيز الملف للمشاركة.",
-        "success",
-      );
+      setEditing(false);
+      showToast("تم حفظ بيانات المحل.", "success");
     } catch (error) {
       showToast(apiErrorMessage(error), "error");
-    } finally {
-      setBackupBusy(null);
     }
   };
 
@@ -164,11 +93,25 @@ export default function SettingsScreen() {
             onPress={() => void settingsQuery.refetch()}
           />
         }
-        subtitle="بيانات المحل، اتصال الخادم، والنسخ الاحتياطي."
+        subtitle="بيانات المحل وإعدادات التطبيق."
         title="الإعدادات"
       />
 
-      <SectionHeading meta="للقراءة فقط" title="بيانات المحل" />
+      {/* ── بيانات المحل ── */}
+      <SectionHeading
+        action={
+          !editing ? (
+            <Button
+              icon="pencil-outline"
+              label="تعديل"
+              onPress={handleEdit}
+              size="sm"
+              variant="ghost"
+            />
+          ) : null
+        }
+        title="بيانات المحل"
+      />
       {settingsQuery.isPending ? (
         <SkeletonCard rows={4} />
       ) : settingsQuery.isError ? (
@@ -178,6 +121,56 @@ export default function SettingsScreen() {
           onRetry={() => void settingsQuery.refetch()}
           title="تعذر تحميل بيانات المحل"
         />
+      ) : editing ? (
+        <Card>
+          <TextField
+            label="اسم المحل"
+            onChangeText={setShopName}
+            placeholder="مثال: محل البركة"
+            returnKeyType="next"
+            value={shopName}
+          />
+          <View style={styles.fieldGap}>
+            <TextField
+              keyboardType="phone-pad"
+              label="هاتف المحل"
+              onChangeText={setShopPhone}
+              placeholder="0600000000"
+              returnKeyType="next"
+              value={shopPhone}
+            />
+          </View>
+          <View style={styles.fieldGap}>
+            <TextField
+              autoCapitalize="characters"
+              label="رمز العملة"
+              maxLength={5}
+              onChangeText={setShopCurrency}
+              placeholder="DH"
+              returnKeyType="done"
+              value={shopCurrency}
+            />
+          </View>
+          <View style={styles.editActions}>
+            <Button
+              fullWidth
+              label="إلغاء"
+              onPress={handleCancel}
+              style={styles.editAction}
+              variant="secondary"
+            />
+            <Button
+              disabled={updateSettingsMutation.isPending}
+              fullWidth
+              icon="save-outline"
+              label="حفظ"
+              loading={updateSettingsMutation.isPending}
+              onPress={() => void handleSave()}
+              style={styles.editAction}
+              variant="primary"
+            />
+          </View>
+        </Card>
       ) : (
         <Card>
           <View style={styles.shopHeader}>
@@ -185,7 +178,7 @@ export default function SettingsScreen() {
             <View style={styles.shopCopy}>
               <AppText variant="heading">{settings?.shop_name || "دفتر الكريدي"}</AppText>
               <AppText tone="dim" variant="caption">
-                ملف المحل المرتبط بهذا الخادم
+                مرتبط بـ Firebase Cloud
               </AppText>
             </View>
             <Badge tone="action" dot>
@@ -208,135 +201,34 @@ export default function SettingsScreen() {
         </Card>
       )}
 
+      {/* ── حالة Firebase ── */}
       <View style={styles.section}>
-        <SectionHeading
-          action={<Badge dot tone={connectionTone}>{connectionLabel}</Badge>}
-          meta="شبكة Wi-Fi المحلية أو خادم HTTPS"
-          title="اتصال الخادم"
-        />
+        <SectionHeading meta="قاعدة البيانات السحابية" title="اتصال Firebase" />
         <Card>
-          <TextField
-            autoCapitalize="none"
-            autoCorrect={false}
-            error={urlError}
-            hint={`الافتراضي: ${defaultBaseUrl}`}
-            inputStyle={styles.urlInput}
-            keyboardType="url"
-            label="عنوان الخادم (API Base URL)"
-            onChangeText={(value) => {
-              setUrl(value);
-              clearFeedback();
-            }}
-            placeholder="http://192.168.1.20:4000/api"
-            returnKeyType="done"
-            value={url}
-          />
-
-          <View style={styles.urlActions}>
-            <Button
-              disabled={savingUrl}
-              fullWidth
-              icon="pulse-outline"
-              label="اختبار"
-              loading={testing}
-              onPress={() => void handleTest()}
-              style={styles.urlAction}
-              variant="secondary"
-            />
-            <Button
-              disabled={testing}
-              fullWidth
-              icon="save-outline"
-              label="حفظ"
-              loading={savingUrl}
-              onPress={() => void handleSave()}
-              style={styles.urlAction}
-              variant="primary"
-            />
-          </View>
-
-          <Button
-            disabled={savingUrl || testing}
-            icon="refresh-outline"
-            label="استعادة العنوان الافتراضي"
-            onPress={() => void handleReset()}
-            size="sm"
-            style={styles.resetButton}
-            variant="ghost"
-          />
-
-          {notice ? (
-            <View
-              style={[
-                styles.notice,
-                notice.tone === "success" ? styles.noticeSuccess : styles.noticeError,
-              ]}
-            >
-              <Ionicons
-                color={notice.tone === "success" ? colors.paymentText : colors.debtText}
-                name={notice.tone === "success" ? "checkmark-circle-outline" : "alert-circle-outline"}
-                size={18}
-              />
-              <AppText
-                style={styles.noticeText}
-                tone={notice.tone === "success" ? "payment" : "debt"}
-                variant="caption"
-              >
-                {notice.message}
+          <View style={styles.firebaseRow}>
+            <View style={styles.firebaseDot} />
+            <View style={styles.firebaseCopy}>
+              <AppText variant="bodyStrong">Cloud Firestore</AppText>
+              <AppText tone="muted" variant="caption">
+                يعمل التطبيق مباشرة على Firebase بدون خادم محلي. البيانات محفوظة
+                في السحاب وتُزامن تلقائياً مع الهاتف حتى في غياب الإنترنت.
               </AppText>
             </View>
-          ) : null}
-
-          <View style={styles.helpBox}>
-            <Ionicons color={colors.warningText} name="wifi-outline" size={17} />
-            <AppText style={styles.helpText} tone="muted" variant="caption">
-              على الهاتف استخدم عنوان IP للحاسوب على نفس الشبكة، مثل
-              {" "}
-              <AppText style={styles.inlineCode} tone="action" variant="caption">
-                192.168.1.20
-              </AppText>
-              . لا تستخدم localhost من جهاز آخر.
+            <Badge dot tone="payment">
+              متصل
+            </Badge>
+          </View>
+          <View style={styles.firebaseHint}>
+            <Ionicons color={colors.paymentText} name="cloud-outline" size={17} />
+            <AppText style={styles.hintText} tone="muted" variant="caption">
+              Project ID: <AppText tone="action" variant="caption">credet-5da9c</AppText>
+              {"\n"}البيانات محمية ومشفرة — تعمل حتى دون اتصال بالإنترنت.
             </AppText>
           </View>
         </Card>
       </View>
 
-      <View style={styles.section}>
-        <SectionHeading meta="ملفات قابلة للتنزيل أو المشاركة" title="النسخ الاحتياطي" />
-        <Card>
-          <AppText tone="muted" variant="body">
-            نزّل نسخة من قاعدة البيانات أو صدّر كل السجلات بصيغة JSON. تُحفظ
-            الملفات عبر مشاركة النظام على الهاتف، وتُنزّل مباشرة على الويب.
-          </AppText>
-          <View style={styles.backupActions}>
-            <Button
-              disabled={backupBusy !== null}
-              fullWidth
-              icon="server-outline"
-              label="قاعدة البيانات"
-              loading={backupBusy === "database"}
-              onPress={() => void handleBackup("database")}
-              style={styles.backupAction}
-              variant="secondary"
-            />
-            <Button
-              disabled={backupBusy !== null}
-              fullWidth
-              icon="code-slash-outline"
-              label="JSON"
-              loading={backupBusy === "json"}
-              onPress={() => void handleBackup("json")}
-              style={styles.backupAction}
-              variant="secondary"
-            />
-          </View>
-          <AppText style={styles.backupNote} tone="dim" variant="caption">
-            الاستعادة غير متاحة من التطبيق حاليًا؛ استخدم نسخة الويب لإدارة
-            النسخ الاحتياطي.
-          </AppText>
-        </Card>
-      </View>
-
+      {/* ── عن التطبيق ── */}
       <View style={styles.section}>
         <SectionHeading title="عن التطبيق" />
         <Card>
@@ -410,69 +302,46 @@ const styles = StyleSheet.create({
   section: {
     marginTop: spacing.xxl,
   },
-  urlInput: {
-    textAlign: "left",
-    writingDirection: "ltr",
-  },
-  urlActions: {
-    flexDirection: "row",
-    gap: spacing.sm,
+  fieldGap: {
     marginTop: spacing.md,
   },
-  urlAction: {
+  editActions: {
+    flexDirection: "row",
+    gap: spacing.sm,
+    marginTop: spacing.lg,
+  },
+  editAction: {
     flex: 1,
   },
-  resetButton: {
-    marginTop: spacing.xs,
-    alignSelf: "flex-start",
+  firebaseRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: spacing.md,
   },
-  notice: {
+  firebaseDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: colors.paymentText,
+    marginTop: 5,
+  },
+  firebaseCopy: {
+    flex: 1,
+    gap: spacing.xs,
+  },
+  firebaseHint: {
     flexDirection: "row",
     alignItems: "flex-start",
     gap: spacing.sm,
     marginTop: spacing.md,
     padding: spacing.md,
-    borderWidth: 1,
     borderRadius: radius.md,
-  },
-  noticeSuccess: {
     backgroundColor: colors.paymentSoft,
+    borderWidth: 1,
     borderColor: "rgba(16, 185, 129, 0.26)",
   },
-  noticeError: {
-    backgroundColor: colors.debtSoft,
-    borderColor: "rgba(239, 68, 68, 0.26)",
-  },
-  noticeText: {
+  hintText: {
     flex: 1,
-  },
-  helpBox: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    gap: spacing.sm,
-    marginTop: spacing.md,
-    padding: spacing.md,
-    borderRadius: radius.md,
-    backgroundColor: colors.warningSoft,
-    borderWidth: 1,
-    borderColor: "rgba(245, 158, 11, 0.24)",
-  },
-  helpText: {
-    flex: 1,
-  },
-  inlineCode: {
-    fontFamily: "Cairo_600SemiBold",
-  },
-  backupActions: {
-    flexDirection: "row",
-    gap: spacing.sm,
-    marginTop: spacing.md,
-  },
-  backupAction: {
-    flex: 1,
-  },
-  backupNote: {
-    marginTop: spacing.sm,
   },
   aboutRow: {
     flexDirection: "row",
