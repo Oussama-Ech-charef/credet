@@ -59,7 +59,7 @@ Thumbs.db
 *.sublime-project
 *.sublime-workspace
 
-# Build and framework artifacts (for Next.js & Expo upcoming phases)
+# Build and framework artifacts (for Next.js & Expo)
 .next/
 out/
 build/
@@ -68,3 +68,11 @@ dist/
 .expo-shared/
 web-build/
 *.tsbuildinfo
+
+# Mobile binaries and signing keys
+*.apk
+*.aab
+*.ipa
+*.keystore
+*.jks
+.eas/
