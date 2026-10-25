@@ -18,6 +18,10 @@
         "NSLocalNetworkUsageDescription": "يستخدم Credet الشبكة المحلية للاتصال بخادم دفتر الديون.",
         "LSApplicationQueriesSchemes": [
           "whatsapp"
+        ],
+        "ExpoLocalization_forcesRTL": true,
+        "CFBundleLocalizations": [
+          "ar"
         ]
       }
     },
@@ -69,6 +73,18 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {
+        "asyncRoutes": {
+          "web": true
+        }
+      },
+      "supportsRTL": true,
+      "forcesRTL": true,
+      "eas": {
+        "projectId": "7705007e-8bf1-47d5-8a78-cfa7d41bf6e7"
+      }
     }
   }
 }
